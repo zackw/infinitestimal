@@ -1,0 +1,15 @@
+# top-most EditorConfig file
+root = true
+
+# Defaults for all files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Indentation preferences for C and C++
+# see also .clang-format
+[*.{c,cpp,h}]
+indent_style = space
+indent_size = 4

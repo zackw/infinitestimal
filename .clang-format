@@ -1,0 +1,41 @@
+# Code formatting policy for itest. -*- yaml -*-
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 78
+DeriveLineEnding: false
+UseCRLF: false
+UseTab: Never
+
+AttributeMacros: []
+
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields:   Consecutive
+AlignConsecutiveMacros:      Consecutive
+
+AllowShortFunctionsOnASingleLine: None
+AlwaysBreakAfterReturnType: AllDefinitions
+BreakBeforeBinaryOperators: All
+Cpp11BracedListStyle: false
+IndentPPDirectives: AfterHash
+IndentGotoLabels: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel:  false
+  AfterClass:      true
+  AfterControlStatement: Never
+  AfterEnum:       true
+  AfterFunction:   true
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     true
+  AfterUnion:      true
+  AfterExternBlock: false
+  BeforeCatch:     false
+  BeforeElse:      false
+  BeforeLambdaBody: false
+  BeforeWhile:     false
+  IndentBraces:    false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true

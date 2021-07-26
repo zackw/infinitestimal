@@ -1,8 +1,8 @@
-example
-example_no_suite
-example_no_runner
-example_random
-example_shuffle
-example_trunc
-example_cpp
+examples/basic
+examples/basic_cplusplus
+examples/minimal_template
+examples/no_runner
+examples/no_suite
+examples/shuffle
+examples/trunc
 *.o
