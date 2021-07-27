@@ -32,6 +32,8 @@ SUITE(suite)
     RUN_TEST(foo_should_foo);
 }
 
+/* You would typically choose one of the following: */
+#if 0
 /* Set up, run suite(s) of tests, report pass/fail/skip stats. */
 int
 run_tests(void)
@@ -46,7 +48,7 @@ run_tests(void)
     ITEST_PRINT_REPORT(); /* display results */
     return itest_all_passed();
 }
-
+#else
 /* main(), for a standalone command-line test runner.
  * This replaces run_tests above, and adds command line option
  * handling and exiting with a pass/fail status. */
@@ -57,3 +59,4 @@ main(int argc, char **argv)
     RUN_SUITE(suite);
     ITEST_MAIN_END(); /* display results */
 }
+#endif

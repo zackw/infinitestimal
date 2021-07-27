@@ -1,6 +1,12 @@
+# Programs used (can override from the command line)
+CC = cc
+CXX = c++
+PERL = perl
+
 # Appropriate default compiler options for current generation GCC and Clang.
 WARN_CFLAGS = -std=c11 -Wall -Wextra -Wpedantic -Wconversion -Werror
 WARN_CFLAGS += -Wstrict-prototypes -Wmissing-prototypes -Wwrite-strings
+WARN_CFLAGS += -Wno-unused-parameter
 
 WARN_CXXFLAGS = -std=c++11 -Wall -Wextra -Wpedantic -Wconversion -Werror
 
@@ -11,7 +17,7 @@ CXXFLAGS = -g -Og
 ALL_CFLAGS = $(CFLAGS) $(WARN_CFLAGS)
 ALL_CXXFLAGS = $(CXXFLAGS) $(WARN_CXXFLAGS)
 
-CPPFLAGS = -I. -DITEST_USE_LONGJMP=1
+CPPFLAGS = -I.
 
 PROGRAMS = \
 	examples/basic \
@@ -25,13 +31,13 @@ PROGRAMS = \
 all: $(PROGRAMS)
 
 %.o: %.c
-	$(CC) -c -o $@ $(CFLAGS) $(CPPFLAGS) $<
+	$(CC) -c -o $@ $(ALL_CFLAGS) $(CPPFLAGS) $<
 
 %.o: %.cpp
-	$(CXX) -c -o $@ $(CXXFLAGS) $(CPPFLAGS) $<
+	$(CXX) -c -o $@ $(ALL_CXXFLAGS) $(CPPFLAGS) $<
 
 %: %.o
-	$(LINK) -o $@ $(CFLAGS) $(LDFLAGS) $^
+	$(LINK) -o $@ $(ALL_CFLAGS) $(LDFLAGS) $^
 
 # By default use the C compiler to link, but use the C++ compiler
 # for the C++ examples.
@@ -39,7 +45,11 @@ LINK = $(CC)
 examples/basic_cplusplus: LINK = $(CXX)
 
 check: all
-	@set -x; for p in $(PROGRAMS); do $$p; done; exit 0
+	@for p in $(PROGRAMS); do \
+	  echo + $$p; \
+	  $$p; \
+	done 2>&1 | tee example-output.log; \
+	$(PERL) compare-example-output.pl
 
 clean:
 	rm -f $(PROGRAMS) $(PROGRAMS:=.o) examples/suite.o itest.o

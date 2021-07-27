@@ -1,3 +1,8 @@
+*.o
+
+example-output.log
+example-output-filtered.log
+
 examples/basic
 examples/basic_cplusplus
 examples/minimal_template
@@ -5,4 +10,3 @@ examples/no_runner
 examples/no_suite
 examples/shuffle
 examples/trunc
-*.o
