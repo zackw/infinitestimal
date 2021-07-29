@@ -584,24 +584,6 @@ typedef enum itest_test_res
         }                                                                    \
     } while (0)
 
-#if ITEST_USE_TIME
-#    define ITEST_SET_TIME(NAME)                                             \
-        NAME = clock();                                                      \
-        if (NAME == (clock_t)-1) {                                           \
-            ITEST_FPRINTF(ITEST_STDOUT, "clock error: %s\n", #NAME);         \
-            exit(EXIT_FAILURE);                                              \
-        }
-
-#    define ITEST_CLOCK_DIFF(C1, C2)                                         \
-        ITEST_FPRINTF(ITEST_STDOUT, " (%lu ticks, %.3f sec)",                \
-                      (long unsigned int)(C2) - (long unsigned int)(C1),     \
-                      (double)((C2) - (C1))                                  \
-                          / (1.0 * (double)CLOCKS_PER_SEC))
-#else
-#    define ITEST_SET_TIME(UNUSED)
-#    define ITEST_CLOCK_DIFF(UNUSED1, UNUSED2)
-#endif
-
 #if ITEST_USE_LONGJMP
 #    define ITEST_SAVE_CONTEXT()                                             \
         /* setjmp returns 0 (ITEST_TEST_RES_PASS) on first call *            \

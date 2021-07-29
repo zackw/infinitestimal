@@ -17,7 +17,38 @@
 
 #include "itest.h"
 
+#include <errno.h>
+
 /* Infinitestimal: out-of-line test harness code.  */
+
+/* Query a CPU time clock.  */
+static clock_t
+itest_get_cpu_time(void)
+{
+#if ITEST_USE_TIME
+    clock_t res = clock();
+    if (res == (clock_t)-1) {
+        ITEST_FPRINTF(ITEST_STDOUT, "clock: %s\n", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    return res;
+#else
+    return (clock_t)-1;
+#endif
+}
+
+/* Report an elapsed CPU time interval.  */
+static void
+itest_report_interval(clock_t begin, clock_t end)
+{
+#if ITEST_USE_TIME
+    // This subtraction must be done in unsigned arithmetic lest it
+    // produce nonsense when the timer wraps around.
+    unsigned long delta = (unsigned long)end - (unsigned long)begin;
+    ITEST_FPRINTF(ITEST_STDOUT, " (%lu ticks, %.3f sec)",
+                  delta, ((double)delta) / CLOCKS_PER_SEC);
+#endif
+}
 
 /* Is FILTER a subset of NAME? */
 static int
@@ -84,7 +115,7 @@ itest_test_pre(const char *name)
             fprintf(stderr, "Error: Test run inside another test.\n");
             return 0;
         }
-        ITEST_SET_TIME(g->suite.pre_test);
+        g->suite.pre_test = itest_get_cpu_time();
         if (g->setup) {
             g->setup(g->setup_udata);
         }
@@ -148,7 +179,7 @@ itest_do_skip(void)
 void
 itest_test_post(int res)
 {
-    ITEST_SET_TIME(itest_info.suite.post_test);
+    itest_info.suite.post_test = itest_get_cpu_time();
     if (itest_info.teardown) {
         void *udata = itest_info.teardown_udata;
         itest_info.teardown(udata);
@@ -166,8 +197,8 @@ itest_test_post(int res)
     itest_info.suite.tests_run++;
     itest_info.col++;
     if (ITEST_IS_VERBOSE()) {
-        ITEST_CLOCK_DIFF(itest_info.suite.pre_test,
-                         itest_info.suite.post_test);
+        itest_report_interval(itest_info.suite.pre_test,
+                              itest_info.suite.post_test);
         ITEST_FPRINTF(ITEST_STDOUT, "\n");
     } else if (itest_info.col % itest_info.width == 0) {
         ITEST_FPRINTF(ITEST_STDOUT, "\n");
@@ -186,8 +217,8 @@ report_suite(void)
                       itest_info.suite.tests_run == 1 ? "" : "s",
                       itest_info.suite.passed, itest_info.suite.failed,
                       itest_info.suite.skipped);
-        ITEST_CLOCK_DIFF(itest_info.suite.pre_suite,
-                         itest_info.suite.post_suite);
+        itest_report_interval(itest_info.suite.pre_suite,
+                              itest_info.suite.post_suite);
         ITEST_FPRINTF(ITEST_STDOUT, "\n");
     }
 }
@@ -224,14 +255,14 @@ itest_suite_pre(const char *suite_name)
     p->count_run++;
     update_counts_and_reset_suite();
     ITEST_FPRINTF(ITEST_STDOUT, "\n* Suite %s:\n", suite_name);
-    ITEST_SET_TIME(itest_info.suite.pre_suite);
+    itest_info.suite.pre_suite = itest_get_cpu_time();
     return 1;
 }
 
 static void
 itest_suite_post(void)
 {
-    ITEST_SET_TIME(itest_info.suite.post_suite);
+    itest_info.suite.post_suite = itest_get_cpu_time();
     report_suite();
 }
 
@@ -556,7 +587,7 @@ itest_init(void)
 {
     memset(&itest_info, 0, sizeof(itest_info));
     itest_info.width = ITEST_DEFAULT_WIDTH;
-    ITEST_SET_TIME(itest_info.begin);
+    itest_info.begin = itest_get_cpu_time();
 }
 
 /* Report passes, failures, skipped tests, the number of
@@ -572,11 +603,11 @@ itest_print_report(void)
     }
 
     update_counts_and_reset_suite();
-    ITEST_SET_TIME(itest_info.end);
+    itest_info.end = itest_get_cpu_time();
     ITEST_FPRINTF(ITEST_STDOUT, "\nTotal: %u test%s",
                   itest_info.tests_run,
                   itest_info.tests_run == 1 ? "" : "s");
-    ITEST_CLOCK_DIFF(itest_info.begin, itest_info.end);
+    itest_report_interval(itest_info.begin, itest_info.end);
     ITEST_FPRINTF(ITEST_STDOUT, ", %u assertion%s\n",
                   itest_info.assertions,
                   itest_info.assertions == 1 ? "" : "s");
