@@ -51,8 +51,7 @@ Based on [greatest][] but with somewhat divergent design goals.
 - **Reasonably Portable**
 
     Infinitestimal requires an ISO C99 hosted environment; notably,
-    variadic macros are required, as are the complete functionality of
-    `string.h` and `stdio.h`.
+    the complete functionality of `string.h` and `stdio.h` is required.
 
     [not yet implemented] There is optional support for isolating
     tests from each other, and recovering from crashes, using POSIX
@@ -68,7 +67,7 @@ Based on [greatest][] but with somewhat divergent design goals.
 
 For now, see [`README-greatest.md`][rg].  All `GREATEST_` and
 `greatest_` prefixes have been changed to `ITEST_` and `itest_`
-respectively, but otherwise the API is the same, so far.
+respectively, but otherwise the API is nearly the same.
 
 A proper manual will be written Real Soon Now.
 

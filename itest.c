@@ -21,6 +21,17 @@
 
 /* Infinitestimal: out-of-line test harness code.  */
 
+#if ITEST_USE_LONGJMP
+#    define ITEST_SAVE_CONTEXT()                                             \
+        /* setjmp returns 0 (ITEST_TEST_RES_PASS) on first call *            \
+         * so the test runs, then RES_FAIL from FAIL_WITH_LONGJMP. */        \
+        ((enum itest_test_res)(setjmp(itest_info.jump_dest)))
+#else
+#    define ITEST_SAVE_CONTEXT()                                             \
+        /*a no-op, since setjmp/longjmp aren't being used */                 \
+        ITEST_TEST_RES_PASS
+#endif
+
 /* Query a CPU time clock.  */
 static clock_t
 itest_get_cpu_time(void)
@@ -45,8 +56,8 @@ itest_report_interval(clock_t begin, clock_t end)
     // This subtraction must be done in unsigned arithmetic lest it
     // produce nonsense when the timer wraps around.
     unsigned long delta = (unsigned long)end - (unsigned long)begin;
-    ITEST_FPRINTF(ITEST_STDOUT, " (%lu ticks, %.3f sec)",
-                  delta, ((double)delta) / CLOCKS_PER_SEC);
+    ITEST_FPRINTF(ITEST_STDOUT, " (%lu ticks, %.3f sec)", delta,
+                  ((double)delta) / CLOCKS_PER_SEC);
 #endif
 }
 
@@ -86,6 +97,55 @@ itest_buffer_test_name(const char *name)
         strncat(&g->name_buf[len + 1], g->name_suffix, size - (len + 2));
     }
 }
+
+/* Run one test function, passing no arguments.  */
+void
+itest_run_test(itest_test_cb *test_cb, const char *name)
+{
+    if (itest_test_pre(name) == 1) {
+        enum itest_test_res res = ITEST_SAVE_CONTEXT();
+        if (res == ITEST_TEST_RES_PASS) {
+            res = test_cb();
+        }
+        itest_test_post(res);
+    }
+}
+
+/* Run one test function, passing one `void *` argument.  */
+void
+itest_run_test_with_env(itest_test_env_cb *test_cb, const char *name,
+                        void *env)
+{
+    if (itest_test_pre(name) == 1) {
+        enum itest_test_res res = ITEST_SAVE_CONTEXT();
+        if (res == ITEST_TEST_RES_PASS) {
+            res = test_cb(env);
+        }
+        itest_test_post(res);
+    }
+}
+
+enum itest_test_res
+itest_set_test_status(const char *msg, const char *file, unsigned int line,
+                      enum itest_test_res res)
+{
+    itest_info.fail_file = file;
+    itest_info.fail_line = line;
+    itest_info.msg       = msg;
+    if (res == ITEST_TEST_RES_FAIL && ITEST_ABORT_ON_FAIL()) {
+        abort();
+    }
+    return res;
+}
+
+#if ITEST_USE_LONGJMP
+void /* noreturn */
+itest_fail_with_longjmp(const char *msg, const char *file, unsigned int line)
+{
+    itest_set_test_status(msg, file, line, ITEST_TEST_RES_FAIL);
+    longjmp(itest_info.jump_dest, ITEST_TEST_RES_FAIL);
+}
+#endif
 
 /* Before running a test, check the name filtering and
  * test shuffling state, if applicable, and then call setup hooks. */
@@ -604,16 +664,13 @@ itest_print_report(void)
 
     update_counts_and_reset_suite();
     itest_info.end = itest_get_cpu_time();
-    ITEST_FPRINTF(ITEST_STDOUT, "\nTotal: %u test%s",
-                  itest_info.tests_run,
+    ITEST_FPRINTF(ITEST_STDOUT, "\nTotal: %u test%s", itest_info.tests_run,
                   itest_info.tests_run == 1 ? "" : "s");
     itest_report_interval(itest_info.begin, itest_info.end);
-    ITEST_FPRINTF(ITEST_STDOUT, ", %u assertion%s\n",
-                  itest_info.assertions,
+    ITEST_FPRINTF(ITEST_STDOUT, ", %u assertion%s\n", itest_info.assertions,
                   itest_info.assertions == 1 ? "" : "s");
     ITEST_FPRINTF(ITEST_STDOUT, "Pass: %u, fail: %u, skip: %u.\n",
-                  itest_info.passed, itest_info.failed,
-                  itest_info.skipped);
+                  itest_info.passed, itest_info.failed, itest_info.skipped);
 
     return itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

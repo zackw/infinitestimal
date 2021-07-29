@@ -201,17 +201,6 @@ parametric_example_c89(void *closure)
     PASS();
 }
 
-/* If using C99, itest can also do parametric tests without
- * needing to manually manage a closure. */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
-TEST
-parametric_example_c99(int arg)
-{
-    ASSERT(arg > 10);
-    PASS();
-}
-#endif
-
 #if ITEST_USE_LONGJMP
 static enum itest_test_res
 subfunction_with_FAIL_WITH_LONGJMP(int arg)
@@ -480,20 +469,13 @@ SUITE(suite)
     arg = 11;
     RUN_TEST1(parametric_example_c89, &arg);
 
-    /* Run a test, with arguments. ('p' for "parametric".) */
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L
-    printf("\nThis should fail:\n");
-    RUN_TESTp(parametric_example_c99, 10);
-    RUN_TESTp(parametric_example_c99, 11);
-#endif
-
 #if ITEST_USE_LONGJMP
     RUN_TEST(fail_via_FAIL_WITH_LONGJMP);
     RUN_TEST1(fail_via_FAIL_WITH_LONGJMP_if_0, 0);
     RUN_TEST(fail_via_ASSERT_OR_LONGJMP);
 #endif
 
-#if ITEST_USE_LONGJMP                                                     \
+#if ITEST_USE_LONGJMP                                                        \
     && (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L)
     RUN_TESTp(fail_via_FAIL_WITH_LONGJMP_if_0, 0);
 #endif

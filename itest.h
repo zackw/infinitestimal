@@ -96,6 +96,14 @@ extern "C" {
  * Types *
  *********/
 
+/* PASS/FAIL/SKIP result from a test. Used internally. */
+typedef enum itest_test_res
+{
+    ITEST_TEST_RES_PASS = 0,
+    ITEST_TEST_RES_FAIL = -1,
+    ITEST_TEST_RES_SKIP = 1
+} itest_test_res;
+
 /* Info for the current running suite. */
 typedef struct itest_suite_info
 {
@@ -115,6 +123,12 @@ typedef struct itest_suite_info
 
 /* Type for a suite function. */
 typedef void itest_suite_cb(void);
+
+/* Type for a test function with no arguments.  */
+typedef enum itest_test_res itest_test_cb(void);
+
+/* Type for a test function with one argument (an environment pointer).  */
+typedef enum itest_test_res itest_test_env_cb(void *);
 
 /* Types for setup/teardown callbacks. If non-NULL, these will be run
  * and passed the pointer to their additional data. */
@@ -266,6 +280,9 @@ void itest_parse_options(int argc, char **argv);
 int itest_print_report(void);
 int itest_all_passed(void);
 void itest_run_suite(itest_suite_cb *suite_cb, const char *suite_name);
+void itest_run_test(itest_test_cb *test_cb, const char *test_name);
+void itest_run_test_with_env(itest_test_env_cb *test_cb,
+                             const char *test_name, void *env);
 void itest_set_suite_filter(const char *filter);
 void itest_set_test_filter(const char *filter);
 void itest_set_test_exclude(const char *filter);
@@ -278,16 +295,12 @@ unsigned int itest_get_verbosity(void);
 void itest_set_verbosity(unsigned int verbosity);
 void itest_set_flag(itest_flag_t flag);
 void itest_set_test_suffix(const char *suffix);
-
-/********************
- * Language Support *
- ********************/
-
-/* If __VA_ARGS__ (C99) is supported, allow parametric testing
- * without needing to manually manage the argument struct. */
-#if (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L)                \
-    || (defined(_MSC_VER) && _MSC_VER >= 1800)
-#    define ITEST_VA_ARGS
+enum itest_test_res itest_set_test_status(const char *msg, const char *file,
+                                          unsigned int line,
+                                          enum itest_test_res res);
+#if ITEST_USE_LONGJMP
+void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
+                                            unsigned int line);
 #endif
 
 /**********
@@ -307,57 +320,18 @@ void itest_set_test_suffix(const char *suffix);
  * The arguments are not included, to allow parametric testing. */
 #define ITEST_TEST static enum itest_test_res
 
-/* PASS/FAIL/SKIP result from a test. Used internally. */
-typedef enum itest_test_res
-{
-    ITEST_TEST_RES_PASS = 0,
-    ITEST_TEST_RES_FAIL = -1,
-    ITEST_TEST_RES_SKIP = 1
-} itest_test_res;
-
 /* Run a suite. */
 #define ITEST_RUN_SUITE(S_NAME) itest_run_suite(S_NAME, #S_NAME)
 
-/* Run a test in the current suite. */
-#define ITEST_RUN_TEST(TEST)                                                 \
-    do {                                                                     \
-        if (itest_test_pre(#TEST) == 1) {                                    \
-            enum itest_test_res res = ITEST_SAVE_CONTEXT();                  \
-            if (res == ITEST_TEST_RES_PASS) {                                \
-                res = TEST();                                                \
-            }                                                                \
-            itest_test_post(res);                                            \
-        }                                                                    \
-    } while (0)
+/* Run test function TEST in the current suite, supplying no arguments. */
+#define ITEST_RUN_TEST(TEST) itest_run_test(TEST, #TEST)
 
-/* Ignore a test, don't warn about it being unused. */
+/* Run test function TEST in the current suite, supplying one argument,
+   which is a `void *`.  */
+#define ITEST_RUN_TEST1(TEST, ENV) itest_run_test_with_env(TEST, #TEST, ENV)
+
+/* Ignore test function TEST, don't warn about it being unused. */
 #define ITEST_IGNORE_TEST(TEST) (void)TEST
-
-/* Run a test in the current suite with one void * argument,
- * which can be a pointer to a struct with multiple arguments. */
-#define ITEST_RUN_TEST1(TEST, ENV)                                           \
-    do {                                                                     \
-        if (itest_test_pre(#TEST) == 1) {                                    \
-            enum itest_test_res res = ITEST_SAVE_CONTEXT();                  \
-            if (res == ITEST_TEST_RES_PASS) {                                \
-                res = TEST(ENV);                                             \
-            }                                                                \
-            itest_test_post(res);                                            \
-        }                                                                    \
-    } while (0)
-
-#ifdef ITEST_VA_ARGS
-#    define ITEST_RUN_TESTp(TEST, ...)                                       \
-        do {                                                                 \
-            if (itest_test_pre(#TEST) == 1) {                                \
-                enum itest_test_res res = ITEST_SAVE_CONTEXT();              \
-                if (res == ITEST_TEST_RES_PASS) {                            \
-                    res = TEST(__VA_ARGS__);                                 \
-                }                                                            \
-                itest_test_post(res);                                        \
-            }                                                                \
-        } while (0)
-#endif
 
 /* Check if the test runner is in verbose mode. */
 #define ITEST_IS_VERBOSE()    ((itest_info.verbosity) > 0)
@@ -539,41 +513,25 @@ typedef enum itest_test_res
 
 /* Pass. */
 #define ITEST_PASSm(MSG)                                                     \
-    do {                                                                     \
-        itest_info.msg = MSG;                                                \
-        return ITEST_TEST_RES_PASS;                                          \
-    } while (0)
+    return itest_set_test_status(MSG, __FILE__, __LINE__, ITEST_TEST_RES_PASS)
 
 /* Fail. */
 #define ITEST_FAILm(MSG)                                                     \
-    do {                                                                     \
-        itest_info.fail_file = __FILE__;                                     \
-        itest_info.fail_line = __LINE__;                                     \
-        itest_info.msg       = MSG;                                          \
-        if (ITEST_ABORT_ON_FAIL()) {                                         \
-            abort();                                                         \
-        }                                                                    \
-        return ITEST_TEST_RES_FAIL;                                          \
-    } while (0)
+    return itest_set_test_status(MSG, __FILE__, __LINE__, ITEST_TEST_RES_FAIL)
+
+/* Skip the current test. */
+#define ITEST_SKIPm(MSG)                                                     \
+    return itest_set_test_status(MSG, __FILE__, __LINE__, ITEST_TEST_RES_SKIP)
 
 /* Optional ITEST_FAILm variant that longjmps. */
 #if ITEST_USE_LONGJMP
 #    define ITEST_FAIL_WITH_LONGJMP() ITEST_FAIL_WITH_LONGJMPm(NULL)
 #    define ITEST_FAIL_WITH_LONGJMPm(MSG)                                    \
         do {                                                                 \
-            itest_info.fail_file = __FILE__;                                 \
-            itest_info.fail_line = __LINE__;                                 \
-            itest_info.msg       = MSG;                                      \
-            longjmp(itest_info.jump_dest, ITEST_TEST_RES_FAIL);              \
+            itest_fail_with_longjmp(MSG, __FILE__, __LINE__);                \
+            abort(); /* can't get here */                                    \
         } while (0)
 #endif
-
-/* Skip the current test. */
-#define ITEST_SKIPm(MSG)                                                     \
-    do {                                                                     \
-        itest_info.msg = MSG;                                                \
-        return ITEST_TEST_RES_SKIP;                                          \
-    } while (0)
 
 /* Check the result of a subfunction using ASSERT, etc. */
 #define ITEST_CHECK_CALL(RES)                                                \
@@ -583,17 +541,6 @@ typedef enum itest_test_res
             return itest_RES;                                                \
         }                                                                    \
     } while (0)
-
-#if ITEST_USE_LONGJMP
-#    define ITEST_SAVE_CONTEXT()                                             \
-        /* setjmp returns 0 (ITEST_TEST_RES_PASS) on first call *            \
-         * so the test runs, then RES_FAIL from FAIL_WITH_LONGJMP. */        \
-        ((enum itest_test_res)(setjmp(itest_info.jump_dest)))
-#else
-#    define ITEST_SAVE_CONTEXT()                                             \
-        /*a no-op, since setjmp/longjmp aren't being used */                 \
-        ITEST_TEST_RES_PASS
-#endif
 
 /* Run every suite / test function run within BODY in pseudo-random
  * order, seeded by SEED. (The top 3 bits of the seed are ignored.)

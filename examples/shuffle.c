@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,8 +21,7 @@ running_all(void)
     if (ITEST_LIST_ONLY()) {
         return 0;
     }
-    if (itest_info.test_filter != NULL
-        || itest_info.suite_filter != NULL) {
+    if (itest_info.test_filter != NULL || itest_info.suite_filter != NULL) {
         return 0;
     }
     return 1;
@@ -52,8 +52,9 @@ reset_run(void)
 static int print_flag = 0;
 
 TEST
-print_check_runs_and_pass(unsigned int id)
+print_check_runs_and_pass(void *pid)
 {
+    unsigned int id = (unsigned int)(uintptr_t)pid;
     if (print_flag) {
         printf("running test %u\n", id);
     }
@@ -119,7 +120,7 @@ SUITE(suite1)
     do {                                                                     \
         if (count > X) {                                                     \
             set_suffix(X);                                                   \
-            RUN_TEST1(print_check_runs_and_pass, X);                         \
+            RUN_TEST1(print_check_runs_and_pass, (void *)X);                 \
         }                                                                    \
     } while (0)
 
@@ -153,7 +154,7 @@ SUITE(suite1)
     SHUFFLE_TESTS(seed_of_time(), {
         for (i = 0; i < limit; i++) {
             set_suffix(i);
-            RUN_TEST1(print_check_runs_and_pass, i);
+            RUN_TEST1(print_check_runs_and_pass, (void *)(uintptr_t)i);
         }
     });
 
@@ -166,8 +167,9 @@ SUITE(suite1)
 }
 
 TEST
-just_print_and_pass(unsigned int id)
+just_print_and_pass(void *pid)
 {
+    unsigned int id = (unsigned int)(uintptr_t)pid;
     printf("running test from suite %u\n", id);
     PASS();
 }
@@ -176,22 +178,22 @@ just_print_and_pass(unsigned int id)
 SUITE(suite2)
 {
     set_suffix(2);
-    RUN_TEST1(just_print_and_pass, 2);
+    RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)2);
 }
 SUITE(suite3)
 {
     set_suffix(3);
-    RUN_TEST1(just_print_and_pass, 3);
+    RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)3);
 }
 SUITE(suite4)
 {
     set_suffix(4);
-    RUN_TEST1(just_print_and_pass, 4);
+    RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)4);
 }
 SUITE(suite5)
 {
     set_suffix(5);
-    RUN_TEST1(just_print_and_pass, 5);
+    RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)5);
 }
 
 SUITE(suite_failure)
@@ -203,15 +205,15 @@ SUITE(suite_shuffle_pass_and_failure)
 {
     SHUFFLE_TESTS(seed_of_time(), {
         set_suffix(1);
-        RUN_TEST1(just_print_and_pass, 1);
+        RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)1);
         set_suffix(2);
-        RUN_TEST1(just_print_and_pass, 2);
+        RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)2);
         set_suffix(3);
-        RUN_TEST1(just_print_and_pass, 3);
+        RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)3);
         set_suffix(4);
-        RUN_TEST1(just_print_and_pass, 4);
+        RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)4);
         set_suffix(5);
-        RUN_TEST1(just_print_and_pass, 5);
+        RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)5);
         RUN_TEST(just_fail);
     });
 }

@@ -39,7 +39,6 @@ main(int argc, char **argv)
 
     RUN_SUITE(suite);
 
-    printf("sizeof(itest_info): %lu\n",
-           (unsigned long)sizeof(itest_info));
+    printf("sizeof(itest_info): %lu\n", (unsigned long)sizeof(itest_info));
     return itest_print_report();
 }

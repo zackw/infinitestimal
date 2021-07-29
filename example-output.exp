@@ -91,10 +91,6 @@ F
 FAIL parametric_example_c89: arg > 10 (examples/basic.c:nn)
 .
 This should fail:
-F
-FAIL parametric_example_c99: arg > 10 (examples/basic.c:nn)
-.
-This should fail:
 
 Expected:
 0000   00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f  ................
@@ -177,7 +173,7 @@ FAIL lt_pass_and_fail: x >= x (examples/basic.c:nn)
 F
 FAIL lte_pass_and_fail: z > x (examples/basic.c:nn)
 
-227 tests - 172 passed, 33 failed, 22 skipped (nn ticks, n.nnn sec)
+225 tests - 171 passed, 32 failed, 22 skipped (nn ticks, n.nnn sec)
 
 * Suite other_suite:
 .s
@@ -185,8 +181,8 @@ FAIL lte_pass_and_fail: z > x (examples/basic.c:nn)
 F
 FAIL standalone_test: (expected failure) (examples/basic.c:nn)
 
-Total: 231 tests (nn ticks, n.nnn sec), 418 assertions
-Pass: 173, fail: 35, skip: 23.
+Total: 229 tests (nn ticks, n.nnn sec), 416 assertions
+Pass: 172, fail: 34, skip: 23.
 + examples/basic: $? = 1
 + examples/basic_cplusplus
 F
