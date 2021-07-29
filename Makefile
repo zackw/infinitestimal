@@ -48,6 +48,7 @@ check: all
 	@for p in $(PROGRAMS); do \
 	  echo + $$p; \
 	  $$p; \
+	  echo + $$p: '$$?' = $$?; \
 	done 2>&1 | tee example-output.log; \
 	$(PERL) compare-example-output.pl
 

@@ -533,7 +533,8 @@ standalone_test(void)
 int
 main(int argc, char **argv)
 {
-    ITEST_MAIN_BEGIN(); /* command-line arguments, initialization. */
+    itest_init();
+    itest_parse_options(argc, argv);
 
     /* If tests are run outside of a suite, a default suite is used. */
     RUN_TEST(standalone_test);
@@ -544,5 +545,5 @@ main(int argc, char **argv)
     /* Standalone tests can appear before or after other suites. */
     RUN_TEST(standalone_test);
 
-    ITEST_MAIN_END(); /* display results */
+    return itest_print_report();
 }

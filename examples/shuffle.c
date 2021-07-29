@@ -219,7 +219,8 @@ SUITE(suite_shuffle_pass_and_failure)
 int
 main(int argc, char **argv)
 {
-    ITEST_MAIN_BEGIN(); /* command-line arguments, initialization. */
+    itest_init();
+    itest_parse_options(argc, argv);
 
     /* PRNG internal state assumes uint32_t values */
     assert(sizeof(itest_info.prng[0].state) >= 4);
@@ -237,5 +238,5 @@ main(int argc, char **argv)
         RUN_SUITE(suite_failure);
     });
 
-    ITEST_MAIN_END(); /* display results */
+    return itest_print_report();
 }

@@ -263,7 +263,7 @@ void itest_set_setup_cb(itest_setup_cb *cb, void *udata);
 void itest_set_teardown_cb(itest_teardown_cb *cb, void *udata);
 void itest_init(void);
 void itest_parse_options(int argc, char **argv);
-void itest_print_report(void);
+int itest_print_report(void);
 int itest_all_passed(void);
 void itest_run_suite(itest_suite_cb *suite_cb, const char *suite_name);
 void itest_set_suite_filter(const char *filter);
@@ -646,20 +646,6 @@ typedef enum itest_test_res
             }                                                                \
         } while (!ITEST_FAILURE_ABORT());                                    \
         prng->count_run = prng->random_order = prng->initialized = 0;        \
-    } while (0)
-
-/* Handle command-line arguments, etc. */
-#define ITEST_MAIN_BEGIN()                                                   \
-    do {                                                                     \
-        itest_init();                                                        \
-        itest_parse_options(argc, argv);                                     \
-    } while (0)
-
-/* Report results, exit with exit status based on results. */
-#define ITEST_MAIN_END()                                                     \
-    do {                                                                     \
-        itest_print_report();                                                \
-        return (itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE);           \
     } while (0)
 
 #if defined(__cplusplus)

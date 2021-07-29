@@ -560,24 +560,31 @@ itest_init(void)
 }
 
 /* Report passes, failures, skipped tests, the number of
- * assertions, and the overall run time. */
-void
+ * assertions, and the overall run time.  As a convenience,
+ * returns EXIT_SUCCESS if all tests passed, EXIT_FAILURE
+ * otherwise, so main can end with 'return itest_print_report();'
+ */
+int
 itest_print_report(void)
 {
-    if (!ITEST_LIST_ONLY()) {
-        update_counts_and_reset_suite();
-        ITEST_SET_TIME(itest_info.end);
-        ITEST_FPRINTF(ITEST_STDOUT, "\nTotal: %u test%s",
-                      itest_info.tests_run,
-                      itest_info.tests_run == 1 ? "" : "s");
-        ITEST_CLOCK_DIFF(itest_info.begin, itest_info.end);
-        ITEST_FPRINTF(ITEST_STDOUT, ", %u assertion%s\n",
-                      itest_info.assertions,
-                      itest_info.assertions == 1 ? "" : "s");
-        ITEST_FPRINTF(ITEST_STDOUT, "Pass: %u, fail: %u, skip: %u.\n",
-                      itest_info.passed, itest_info.failed,
-                      itest_info.skipped);
+    if (ITEST_LIST_ONLY()) {
+        return EXIT_SUCCESS;
     }
+
+    update_counts_and_reset_suite();
+    ITEST_SET_TIME(itest_info.end);
+    ITEST_FPRINTF(ITEST_STDOUT, "\nTotal: %u test%s",
+                  itest_info.tests_run,
+                  itest_info.tests_run == 1 ? "" : "s");
+    ITEST_CLOCK_DIFF(itest_info.begin, itest_info.end);
+    ITEST_FPRINTF(ITEST_STDOUT, ", %u assertion%s\n",
+                  itest_info.assertions,
+                  itest_info.assertions == 1 ? "" : "s");
+    ITEST_FPRINTF(ITEST_STDOUT, "Pass: %u, fail: %u, skip: %u.\n",
+                  itest_info.passed, itest_info.failed,
+                  itest_info.skipped);
+
+    return itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
 itest_type_info itest_type_info_memory = {

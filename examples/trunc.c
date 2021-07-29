@@ -34,10 +34,12 @@ SUITE(suite)
 int
 main(int argc, char **argv)
 {
-    ITEST_MAIN_BEGIN();
+    itest_init();
+    itest_parse_options(argc, argv);
+
     RUN_SUITE(suite);
 
     printf("sizeof(itest_info): %lu\n",
            (unsigned long)sizeof(itest_info));
-    ITEST_MAIN_END();
+    return itest_print_report();
 }

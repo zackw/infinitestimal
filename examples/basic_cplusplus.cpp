@@ -9,8 +9,9 @@ standalone_test(void)
 int
 main(int argc, char **argv)
 {
-    ITEST_MAIN_BEGIN();
+    itest_init();
+    itest_parse_options(argc, argv);
+
     RUN_TEST(standalone_test);
-    ITEST_MAIN_END(); /* display results */
-    return 0;
+    return itest_print_report();
 }

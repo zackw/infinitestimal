@@ -55,8 +55,11 @@ run_tests(void)
 int
 main(int argc, char **argv)
 {
-    ITEST_MAIN_BEGIN(); /* init & parse command-line args */
+    itest_init();
+    itest_parse_options(argc, argv);
+
     RUN_SUITE(suite);
-    ITEST_MAIN_END(); /* display results */
+
+    return itest_print_report();
 }
 #endif

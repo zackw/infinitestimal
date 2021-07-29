@@ -187,12 +187,14 @@ FAIL standalone_test: (expected failure) (examples/basic.c:nn)
 
 Total: 231 tests (nn ticks, n.nnn sec), 418 assertions
 Pass: 173, fail: 35, skip: 23.
++ examples/basic: $? = 1
 + examples/basic_cplusplus
 F
 FAIL standalone_test: (expected failure) (examples/basic_cplusplus.cpp:nn)
 
 Total: 1 test (nn ticks, n.nnn sec), 0 assertions
 Pass: 0, fail: 1, skip: 0.
++ examples/basic_cplusplus: $? = 1
 + examples/minimal_template
 
 * Suite suite:
@@ -203,6 +205,7 @@ teardown callback for each test case
 
 Total: 1 test (nn ticks, n.nnn sec), 0 assertions
 Pass: 1, fail: 0, skip: 0.
++ examples/minimal_template: $? = 0
 + examples/no_runner
 .
 Standard report, as printed by itest:
@@ -212,12 +215,14 @@ Pass: 1, fail: 0, skip: 0.
 
 Custom report:
 pass 1, fail 0, skip 0, assertions 0
++ examples/no_runner: $? = 0
 + examples/no_suite
 F
 FAIL standalone_fail: (expected failure) (examples/no_suite.c:nn)
 .s
 Total: 3 tests (nn ticks, n.nnn sec), 0 assertions
 Pass: 1, fail: 1, skip: 1.
++ examples/no_suite: $? = 1
 + examples/shuffle
 init_second_pass: <<variable>>
 init_second_pass: <<variable>>
@@ -356,6 +361,7 @@ FAIL just_fail:  (examples/shuffle.c:nn)
 
 Total: 1066 tests (nn ticks, n.nnn sec), 0 assertions
 Pass: 1064, fail: 2, skip: 0.
++ examples/shuffle: $? = 1
 + examples/trunc
 
 * Suite suite:
@@ -365,3 +371,4 @@ sizeof(itest_info): 320
 
 Total: 11 tests (nn ticks, n.nnn sec), 0 assertions
 Pass: 11, fail: 0, skip: 0.
++ examples/trunc: $? = 0
