@@ -203,7 +203,7 @@ parametric_example_c89(void *closure)
 
 #if ITEST_USE_LONGJMP
 static enum itest_test_res
-subfunction_with_FAIL_WITH_LONGJMP(int arg)
+subfunction_with_FAIL_WITH_LONGJMP(void *arg)
 {
     if (arg == 0) {
         FAIL_WITH_LONGJMPm("zero argument (expected failure)");
@@ -212,7 +212,7 @@ subfunction_with_FAIL_WITH_LONGJMP(int arg)
 }
 
 static enum itest_test_res
-subfunction_with_ASSERT_OR_LONGJMP(int arg)
+subfunction_with_ASSERT_OR_LONGJMP(void *arg)
 {
     ASSERT_OR_LONGJMPm("zero argument (expected failure)", arg != 0);
     PASS();
@@ -226,7 +226,7 @@ fail_via_FAIL_WITH_LONGJMP(void)
 }
 
 TEST
-fail_via_FAIL_WITH_LONGJMP_if_0(int arg)
+fail_via_FAIL_WITH_LONGJMP_if_0(void *arg)
 {
     subfunction_with_FAIL_WITH_LONGJMP(arg);
     PASS();
@@ -473,11 +473,6 @@ SUITE(suite)
     RUN_TEST(fail_via_FAIL_WITH_LONGJMP);
     RUN_TEST1(fail_via_FAIL_WITH_LONGJMP_if_0, 0);
     RUN_TEST(fail_via_ASSERT_OR_LONGJMP);
-#endif
-
-#if ITEST_USE_LONGJMP                                                        \
-    && (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 19901L)
-    RUN_TESTp(fail_via_FAIL_WITH_LONGJMP_if_0, 0);
 #endif
 
     if (ITEST_IS_VERBOSE()) {

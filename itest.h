@@ -59,7 +59,7 @@ extern "C" {
 
 /* Set to 0 to disable all use of setjmp/longjmp. */
 #ifndef ITEST_USE_LONGJMP
-#    define ITEST_USE_LONGJMP 0
+#    define ITEST_USE_LONGJMP 1
 #endif
 
 /* Make it possible to replace fprintf with another
