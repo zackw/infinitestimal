@@ -450,8 +450,8 @@ SUITE(suite)
     teardown_was_called = -1;
 
     /* Add setup/teardown for each test case. */
-    ITEST_SET_SETUP_CB(trace_setup, NULL);
-    ITEST_SET_TEARDOWN_CB(trace_teardown, NULL);
+    itest_set_setup_cb(trace_setup, NULL);
+    itest_set_teardown_cb(trace_teardown, NULL);
 
     /* Check that the test-specific teardown hook is called. */
     RUN_TEST(teardown_example_PASS);
@@ -466,8 +466,8 @@ SUITE(suite)
     assert(teardown_was_called);
 
     /* clear setup and teardown */
-    ITEST_SET_SETUP_CB(NULL, NULL);
-    ITEST_SET_TEARDOWN_CB(NULL, NULL);
+    itest_set_setup_cb(NULL, NULL);
+    itest_set_teardown_cb(NULL, NULL);
 
     printf("This should fail, but note the subfunction that failed.\n");
     RUN_TEST(example_using_subfunctions);

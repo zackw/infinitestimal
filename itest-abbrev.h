@@ -66,8 +66,8 @@
 #define PASSm            ITEST_PASSm
 #define FAILm            ITEST_FAILm
 #define SKIPm            ITEST_SKIPm
-#define SET_SETUP        ITEST_SET_SETUP_CB
-#define SET_TEARDOWN     ITEST_SET_TEARDOWN_CB
+#define SET_SETUP        itest_set_setup_cb
+#define SET_TEARDOWN     itest_set_teardown_cb
 #define CHECK_CALL       ITEST_CHECK_CALL
 #define SHUFFLE_TESTS    ITEST_SHUFFLE_TESTS
 #define SHUFFLE_SUITES   ITEST_SHUFFLE_SUITES

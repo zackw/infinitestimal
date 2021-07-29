@@ -18,13 +18,13 @@ main(int argc, char **argv)
     (void)argv;
 
     /* Initialize itest, but don't build the CLI test runner code. */
-    ITEST_INIT();
+    itest_init();
 
     RUN_TEST(standalone_pass);
 
     /* Print report, but do not exit. */
     printf("\nStandard report, as printed by itest:\n");
-    ITEST_PRINT_REPORT();
+    itest_print_report();
 
     itest_get_report(&report);
 

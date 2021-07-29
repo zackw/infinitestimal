@@ -38,14 +38,14 @@ SUITE(suite)
 int
 run_tests(void)
 {
-    ITEST_INIT(); /* init. itest internals */
+    itest_init(); /* init. itest internals */
     /* List of suites to run (if any). */
     RUN_SUITE(suite);
 
     /* Tests can also be run directly, without using test suites. */
     RUN_TEST(foo_should_foo);
 
-    ITEST_PRINT_REPORT(); /* display results */
+    itest_print_report(); /* display results */
     return itest_all_passed();
 }
 #else

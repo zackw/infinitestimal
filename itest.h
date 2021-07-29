@@ -28,8 +28,6 @@ extern "C" {
 #define ITEST_VERSION_PATCH 0
 
 /* A unit testing system for C.
- * It doesn't use dynamic allocation or depend on anything
- * beyond ANSI C89.
  *
  * An up-to-date version can be found at:
  *     https://github.com/zackw/infinitestmal/
@@ -261,11 +259,11 @@ int itest_prng_init_second_pass(int id, unsigned long seed);
 void itest_prng_step(int id);
 
 /* These are part of the public itest API. */
-void ITEST_SET_SETUP_CB(itest_setup_cb *cb, void *udata);
-void ITEST_SET_TEARDOWN_CB(itest_teardown_cb *cb, void *udata);
-void ITEST_INIT(void);
+void itest_set_setup_cb(itest_setup_cb *cb, void *udata);
+void itest_set_teardown_cb(itest_teardown_cb *cb, void *udata);
+void itest_init(void);
 void itest_parse_options(int argc, char **argv);
-void ITEST_PRINT_REPORT(void);
+void itest_print_report(void);
 int itest_all_passed(void);
 void itest_run_suite(itest_suite_cb *suite_cb, const char *suite_name);
 void itest_set_suite_filter(const char *filter);
@@ -653,14 +651,14 @@ typedef enum itest_test_res
 /* Handle command-line arguments, etc. */
 #define ITEST_MAIN_BEGIN()                                                   \
     do {                                                                     \
-        ITEST_INIT();                                                        \
+        itest_init();                                                        \
         itest_parse_options(argc, argv);                                     \
     } while (0)
 
 /* Report results, exit with exit status based on results. */
 #define ITEST_MAIN_END()                                                     \
     do {                                                                     \
-        ITEST_PRINT_REPORT();                                                \
+        itest_print_report();                                                \
         return (itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE);           \
     } while (0)
 

@@ -426,14 +426,14 @@ itest_set_test_suffix(const char *suffix)
 }
 
 void
-ITEST_SET_SETUP_CB(itest_setup_cb *cb, void *udata)
+itest_set_setup_cb(itest_setup_cb *cb, void *udata)
 {
     itest_info.setup       = cb;
     itest_info.setup_udata = udata;
 }
 
 void
-ITEST_SET_TEARDOWN_CB(itest_teardown_cb *cb, void *udata)
+itest_set_teardown_cb(itest_teardown_cb *cb, void *udata)
 {
     itest_info.teardown       = cb;
     itest_info.teardown_udata = udata;
@@ -552,7 +552,7 @@ itest_prng_step(int id)
 }
 
 void
-ITEST_INIT(void)
+itest_init(void)
 {
     memset(&itest_info, 0, sizeof(itest_info));
     itest_info.width = ITEST_DEFAULT_WIDTH;
@@ -562,7 +562,7 @@ ITEST_INIT(void)
 /* Report passes, failures, skipped tests, the number of
  * assertions, and the overall run time. */
 void
-ITEST_PRINT_REPORT(void)
+itest_print_report(void)
 {
     if (!ITEST_LIST_ONLY()) {
         update_counts_and_reset_suite();
