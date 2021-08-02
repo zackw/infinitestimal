@@ -388,7 +388,7 @@ using printf.)
 
 The `greatest_type_info` struct is typedef'd, which is inconsistent with
 the API otherwise not typedef-ing user facing structs. (It is also in the
-struct namespace.) Fixing this will have to wait until v2.0.0. 
+struct namespace.) Fixing this will have to wait until v2.0.0.
 
 
 ## v1.0.0 - 2015-05-11
@@ -402,10 +402,10 @@ Added `ASSERT_IN_RANGE(expected, actual, tolerance)` to check whether the
 actual value is within a +/- tolerance, as a floating point comparison,
 and print the actual value if out of bounds. The floating point type used
 can be configured by overriding GREATEST_FLOAT.
-    
+
 Added `GREATEST_USE_TIME` compile-time #define, which can be set to 0
 to compile out all time.h / clock() related functionality.
-    
+
 Added check for `_MSC_VER`, to detect C99 compatibility when built with
 Visual Studio.
 
@@ -413,7 +413,7 @@ Visual Studio.
 ## v0.11.1 - 2015-01-17
 
 Patch version, increased due to bug fixes (thanks @pmj):
-    
+
 . Fix for issue #26 - must not longjmp to a context in an exited function.
 . Corrected use of non-prefixed FAILm() macro in ASSERT macros.
 . Avoid compile warnings about no previous definition of suite functions.
@@ -431,7 +431,7 @@ compiled out by `#define`-ing `GREATEST_USE_LONGJMP` to 0.
 
 Restructured API so a CLI test runner is no longer necessary.
 `GREATEST_INIT()` and `GREATEST_PRINT_REPORT()` can be called directly.
-    
+
 
 ### Other Improvements
 
