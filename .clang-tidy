@@ -1,0 +1,7 @@
+---
+Checks:          'clang-analyzer*,modernize*,bugprone*,cert*,readability*,-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,-modernize-redundant-void-arg,-modernize-use-trailing-return-type,-cert-msc30-c,-cert-msc50-cpp,-readability-magic-numbers,-readability-else-after-return,-readability-isolate-declaration,-readability-function-cognitive-complexity'
+WarningsAsErrors: '*'
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+FormatStyle:     none
+...

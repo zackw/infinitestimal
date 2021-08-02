@@ -488,8 +488,8 @@ void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
 #define ITEST_ASSERT_MEM_EQm(MSG, EXP, GOT, SIZE)                            \
     do {                                                                     \
         itest_memory_cmp_env env;                                            \
-        env.exp  = (const unsigned char *)EXP;                               \
-        env.got  = (const unsigned char *)GOT;                               \
+        env.exp  = (const unsigned char *)(EXP);                             \
+        env.got  = (const unsigned char *)(GOT);                             \
         env.size = SIZE;                                                     \
         ITEST_ASSERT_EQUAL_Tm(MSG, env.exp, env.got,                         \
                               &itest_type_info_memory, &env);                \
@@ -565,7 +565,7 @@ void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
             if (prng->initialized) {                                         \
                 itest_prng_step(ID);                                         \
             }                                                                \
-            BODY;                                                            \
+            BODY; /* NOLINT(bugprone-macro-parentheses) */                   \
             if (!prng->initialized) {                                        \
                 if (!itest_prng_init_second_pass(ID, SD)) {                  \
                     break;                                                   \

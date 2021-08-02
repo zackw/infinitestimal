@@ -28,6 +28,19 @@ PROGRAMS = \
 	examples/shuffle \
 	examples/trunc
 
+SOURCES = \
+	itest.c \
+	itest.h \
+	itest-abbrev.h \
+	examples/basic.c \
+	examples/basic_cplusplus.cpp \
+	examples/minimal_template.c \
+	examples/no_runner.c \
+	examples/no_suite.c \
+	examples/shuffle.c \
+	examples/suite.c \
+	examples/trunc.c
+
 all: $(PROGRAMS)
 
 %.o: %.c
@@ -44,18 +57,31 @@ all: $(PROGRAMS)
 LINK = $(CC)
 examples/basic_cplusplus: LINK = $(CXX)
 
-check: all
-	@for p in $(PROGRAMS); do \
-	  echo + $$p; \
-	  $$p; \
-	  echo + $$p: '$$?' = $$?; \
-	done 2>&1 | tee example-output.log; \
+check-examples: all
+	for p in $(PROGRAMS); do		\
+	  echo + $$p;				\
+	  $$p;					\
+	  echo + $$p: '$$?' = $$?;		\
+	done > example-output.log 2>&1;		\
 	$(PERL) compare-example-output.pl
 
-clean:
-	rm -f $(PROGRAMS) $(PROGRAMS:=.o) examples/suite.o itest.o
+check-lint:
+	if command -V clang-tidy; then		\
+	  clang-tidy $(SOURCES) -- -I.;		\
+	fi
+	if command -V cppcheck; then		\
+	  cppcheck --enable=all --inconclusive	\
+	  --project=.config.cppcheck		\
+	  $(SOURCES);				\
+	fi
 
-.PHONY: all check clean
+check: check-examples check-lint
+
+clean:
+	rm -f $(PROGRAMS) $(PROGRAMS:=.o) examples/suite.o itest.o \
+		example-output.log example-output-filtered.log
+
+.PHONY: all check check-examples check-lint clean
 
 # Program dependencies
 examples/basic: examples/basic.o examples/suite.o itest.o

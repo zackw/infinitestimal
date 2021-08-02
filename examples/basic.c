@@ -26,8 +26,9 @@ example_test_case(void)
     ASSERT(1 == 1);
 
     r = rand() % 10;
-    if (r == 1)
+    if (r == 1) {
         SKIP();
+    }
     ASSERT(r >= 1);
     PASS();
 }
@@ -260,9 +261,9 @@ expect_mem_equal(void)
 }
 
 static const char *
-foo_str(int v)
+foo_str(int value)
 {
-    switch ((enum foo_t)v) {
+    switch ((enum foo_t)value) {
     case FOO_1:
         return "FOO_1";
     case FOO_2:

@@ -100,9 +100,9 @@ itest_buffer_test_name(const char *name)
 
 /* Run one test function, passing no arguments.  */
 void
-itest_run_test(itest_test_cb *test_cb, const char *name)
+itest_run_test(itest_test_cb *test_cb, const char *test_name)
 {
-    if (itest_test_pre(name) == 1) {
+    if (itest_test_pre(test_name) == 1) {
         enum itest_test_res res = ITEST_SAVE_CONTEXT();
         if (res == ITEST_TEST_RES_PASS) {
             res = test_cb();
@@ -113,10 +113,10 @@ itest_run_test(itest_test_cb *test_cb, const char *name)
 
 /* Run one test function, passing one `void *` argument.  */
 void
-itest_run_test_with_env(itest_test_env_cb *test_cb, const char *name,
+itest_run_test_with_env(itest_test_env_cb *test_cb, const char *test_name,
                         void *env)
 {
-    if (itest_test_pre(name) == 1) {
+    if (itest_test_pre(test_name) == 1) {
         enum itest_test_res res = ITEST_SAVE_CONTEXT();
         if (res == ITEST_TEST_RES_PASS) {
             res = test_cb(env);
@@ -564,8 +564,8 @@ itest_memory_printf_cb(const void *t, void *udata)
 {
     itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
     const unsigned char *buf  = (const unsigned char *)t;
-    unsigned char diff_mark   = ' ';
     FILE *out                 = ITEST_STDOUT;
+    unsigned char diff_mark;
     size_t i, line_i, line_len = 0;
     int len = 0; /* format hexdump with differences highlighted */
     for (i = 0; i < env->size; i += line_len) {
@@ -575,8 +575,9 @@ itest_memory_printf_cb(const void *t, void *udata)
             line_len = 16;
         }
         for (line_i = i; line_i < i + line_len; line_i++) {
-            if (env->exp[line_i] != env->got[line_i])
+            if (env->exp[line_i] != env->got[line_i]) {
                 diff_mark = 'X';
+            }
         }
         len += ITEST_FPRINTF(out, "\n%04x %c ", (unsigned int)i, diff_mark);
         for (line_i = i; line_i < i + line_len; line_i++) {

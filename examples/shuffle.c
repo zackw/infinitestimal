@@ -90,7 +90,7 @@ seed_of_time(void)
 #endif
 }
 
-static char suffix_buf[8];
+static char suffix_buf[11];
 
 static void
 set_suffix(unsigned int i)
@@ -98,8 +98,7 @@ set_suffix(unsigned int i)
     /* Don't suffix with 0, just to mix in one without a suffix,
      * to test conditionally including a "_" separator. */
     if (i > 0) {
-        /* Using `sprintf` here for building with `-std=c89`. */
-        (void)sprintf(suffix_buf, "%d", i);
+        snprintf(suffix_buf, sizeof suffix_buf, "%u", i);
         itest_set_test_suffix(suffix_buf);
     }
 }
@@ -118,9 +117,9 @@ SUITE(suite1)
         fprintf(stderr, "count %u, seed %u\n", count, seed);
 #define COUNT_RUN(X)                                                         \
     do {                                                                     \
-        if (count > X) {                                                     \
+        if (count > (X)) {                                                   \
             set_suffix(X);                                                   \
-            RUN_TEST1(print_check_runs_and_pass, (void *)X);                 \
+            RUN_TEST1(print_check_runs_and_pass, (void *)(X));               \
         }                                                                    \
     } while (0)
 
@@ -218,17 +217,17 @@ SUITE(suite_shuffle_pass_and_failure)
     });
 }
 
+/* PRNG internal state assumes uint32_t values */
+static_assert(sizeof(itest_info.prng[0].state) >= 4, "PRNG state too small");
+static_assert(sizeof(itest_info.prng[0].a) >= 4, "PRNG state too small");
+static_assert(sizeof(itest_info.prng[0].c) >= 4, "PRNG state too small");
+static_assert(sizeof(itest_info.prng[0].m) >= 4, "PRNG state too small");
+
 int
 main(int argc, char **argv)
 {
     itest_init();
     itest_parse_options(argc, argv);
-
-    /* PRNG internal state assumes uint32_t values */
-    assert(sizeof(itest_info.prng[0].state) >= 4);
-    assert(sizeof(itest_info.prng[0].a) >= 4);
-    assert(sizeof(itest_info.prng[0].c) >= 4);
-    assert(sizeof(itest_info.prng[0].m) >= 4);
 
     SHUFFLE_SUITES(seed_of_time(), {
         RUN_SUITE(suite1);
