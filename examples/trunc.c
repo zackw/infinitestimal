@@ -6,13 +6,11 @@
 TEST
 t(void)
 {
-    PASS();
 }
 
 TEST
 abcdefghijklmnopqrstuvwxyz(void)
 {
-    PASS();
 }
 
 SUITE(suite)

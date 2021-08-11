@@ -30,7 +30,6 @@ example_test_case(void)
         SKIP();
     }
     ASSERT(r >= 1);
-    PASS();
 }
 
 TEST
@@ -38,7 +37,6 @@ expect_equal(void)
 {
     int i = 9;
     ASSERT_EQ(10, i);
-    PASS();
 }
 
 TEST
@@ -46,7 +44,6 @@ expect_not_equal(void)
 {
     int i = 9;
     ASSERT_NEQ(10, i);
-    PASS();
 }
 
 TEST
@@ -54,7 +51,6 @@ expect_str_equal(void)
 {
     const char *foo1 = "foo1";
     ASSERT_STR_EQ("foo2", foo1);
-    PASS();
 }
 
 TEST
@@ -62,7 +58,6 @@ expect_strn_equal(void)
 {
     const char *foo1 = "foo1";
     ASSERT_STRN_EQ("foo2", foo1, 3);
-    PASSm("custom PASSm message");
 }
 
 /* A boxed int type, used to show type-specific equality tests. */
@@ -109,7 +104,6 @@ expect_boxed_int_equal(void)
     boxed_int c = { 4 };
     ASSERT_EQUAL_T(&a, &b, &boxed_int_type_info, NULL); /* succeeds */
     ASSERT_EQUAL_T(&a, &c, &boxed_int_type_info, NULL); /* fails */
-    PASS();
 }
 
 /* The struct that stores the previous two functions' pointers. */
@@ -129,7 +123,6 @@ expect_boxed_int_equal_no_print(void)
     ASSERT_EQUAL_T(&a, &b, &boxed_int_type_info_no_print, NULL);
     /* fails */
     ASSERT_EQUAL_T(&a, &c, &boxed_int_type_info_no_print, NULL);
-    PASS();
 }
 
 TEST
@@ -138,7 +131,6 @@ expect_int_equal_printing_hex(void)
     unsigned int a = 0xba5eba11;
     unsigned int b = 0xf005ba11;
     ASSERT_EQ_FMT(a, b, "0x%08x");
-    PASS();
 }
 
 TEST
@@ -148,7 +140,6 @@ expect_floating_point_range(void)
     ASSERT_IN_RANGEm("in range", 0.00001, 0.000110, 0.00010);
     ASSERT_IN_RANGE(0.00001, 0.000110, 0.00010);
     ASSERT_IN_RANGEm("out of range", 0.00001, 0.000111, 0.00010);
-    PASS();
 }
 
 /* Flag, used to confirm that teardown hook is being called. */
@@ -158,7 +149,6 @@ TEST
 teardown_example_PASS(void)
 {
     teardown_was_called = 0;
-    PASS();
 }
 
 TEST
@@ -176,19 +166,17 @@ teardown_example_SKIP(void)
 }
 
 /* Example of a test case that calls another function which uses ASSERT. */
-static enum itest_test_res
+static void
 less_than_three(int arg)
 {
     ASSERT(arg < 3);
-    PASS();
 }
 
 TEST
 example_using_subfunctions(void)
 {
-    CHECK_CALL(less_than_three(1)); /* <3 */
-    CHECK_CALL(less_than_three(5)); /* </3 */
-    PASS();
+    less_than_three(1); /* <3 */
+    less_than_three(5); /* </3 */
 }
 
 /* Example of an ANSI C compatible way to do test cases with
@@ -199,47 +187,7 @@ parametric_example_c89(void *closure)
 {
     int arg = *(int *)closure;
     ASSERT(arg > 10);
-    PASS();
 }
-
-#if ITEST_USE_LONGJMP
-static enum itest_test_res
-subfunction_with_FAIL_WITH_LONGJMP(void *arg)
-{
-    if (arg == 0) {
-        FAIL_WITH_LONGJMPm("zero argument (expected failure)");
-    }
-    PASS();
-}
-
-static enum itest_test_res
-subfunction_with_ASSERT_OR_LONGJMP(void *arg)
-{
-    ASSERT_OR_LONGJMPm("zero argument (expected failure)", arg != 0);
-    PASS();
-}
-
-TEST
-fail_via_FAIL_WITH_LONGJMP(void)
-{
-    subfunction_with_FAIL_WITH_LONGJMP(0);
-    PASS();
-}
-
-TEST
-fail_via_FAIL_WITH_LONGJMP_if_0(void *arg)
-{
-    subfunction_with_FAIL_WITH_LONGJMP(arg);
-    PASS();
-}
-
-TEST
-fail_via_ASSERT_OR_LONGJMP(void)
-{
-    subfunction_with_ASSERT_OR_LONGJMP(0);
-    PASS();
-}
-#endif
 
 TEST
 expect_mem_equal(void)
@@ -257,7 +205,6 @@ expect_mem_equal(void)
     got[34] = 'X';
 
     ASSERT_MEM_EQm("expected matching memory", exp, got, sizeof(got));
-    PASS();
 }
 
 static const char *
@@ -287,7 +234,6 @@ TEST
 expect_enum_equal(void)
 {
     ASSERT_ENUM_EQ(FOO_1, foo_2_with_side_effect(), foo_str);
-    PASS();
 }
 
 TEST
@@ -297,7 +243,6 @@ expect_enum_equal_only_evaluates_args_once(void)
      * than once, `side_effect` will be != 1 here. */
     ASSERT_EQ_FMTm("ASSERT_ENUM_EQ should only evaluate arguments once", 1,
                    side_effect, "%d");
-    PASS();
 }
 
 static size_t
@@ -318,7 +263,6 @@ extra_slow_test(void)
     for (i = 1; i < 40; i++) {
         printf("fib %u -> %lu\n", i, (long unsigned)Fibonacci(i));
     }
-    PASS();
 }
 
 TEST
@@ -327,7 +271,6 @@ nested_RUN_TEST(void)
     printf(
         "This nested RUN_TEST call should not trigger an infinite loop...\n");
     RUN_TEST(nested_RUN_TEST);
-    PASS();
 }
 
 TEST
@@ -337,7 +280,6 @@ eq_pass_and_fail(void)
     ASSERT_EQ(x, x);
     ASSERT_EQm("y == y", y, y);
     ASSERT_EQ(x, y);
-    PASS();
 }
 
 TEST
@@ -346,7 +288,6 @@ neq_pass_and_fail(void)
     const int x = 1, y = 2;
     ASSERT_NEQm("x != y", x, y);
     ASSERT_NEQ(x, x);
-    PASS();
 }
 
 TEST
@@ -355,7 +296,6 @@ gt_pass_and_fail(void)
     const int x = 1, y = 2;
     ASSERT_GTm("y > x", y, x);
     ASSERT_GT(x, x);
-    PASS();
 }
 
 TEST
@@ -368,7 +308,6 @@ gte_pass_and_fail(void)
     ASSERT_GTE(z, x);
     ASSERT_GTEm("y >= y", y, y);
     ASSERT_GTE(y, z);
-    PASS();
 }
 
 TEST
@@ -377,7 +316,6 @@ lt_pass_and_fail(void)
     const int x = 1, y = 2;
     ASSERT_LTm("x < y", x, y);
     ASSERT_LT(x, x);
-    PASS();
 }
 
 TEST
@@ -389,7 +327,6 @@ lte_pass_and_fail(void)
     ASSERT_LTEm("x <= y", x, y);
     ASSERT_LTE(x, x);
     ASSERT_LTE(z, x);
-    PASS();
 }
 
 static void
@@ -469,12 +406,6 @@ SUITE(suite)
     RUN_TEST1(parametric_example_c89, &arg);
     arg = 11;
     RUN_TEST1(parametric_example_c89, &arg);
-
-#if ITEST_USE_LONGJMP
-    RUN_TEST(fail_via_FAIL_WITH_LONGJMP);
-    RUN_TEST1(fail_via_FAIL_WITH_LONGJMP_if_0, 0);
-    RUN_TEST(fail_via_ASSERT_OR_LONGJMP);
-#endif
 
     if (ITEST_IS_VERBOSE()) {
         printf("itest was run with verbosity level: %u\n",

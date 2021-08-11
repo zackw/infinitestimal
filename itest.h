@@ -39,6 +39,7 @@ extern "C" {
 /*********************************************************************/
 
 #include <ctype.h>
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,19 +58,10 @@ extern "C" {
 #    define ITEST_STDOUT stdout
 #endif
 
-/* Set to 0 to disable all use of setjmp/longjmp. */
-#ifndef ITEST_USE_LONGJMP
-#    define ITEST_USE_LONGJMP 1
-#endif
-
 /* Make it possible to replace fprintf with another
  * function with the same interface. */
 #ifndef ITEST_FPRINTF
 #    define ITEST_FPRINTF fprintf
-#endif
-
-#if ITEST_USE_LONGJMP
-#    include <setjmp.h>
 #endif
 
 /* Set to 0 to disable all use of time.h / clock(). */
@@ -92,16 +84,28 @@ extern "C" {
 #    define ITEST_TESTNAME_BUF_SIZE 128
 #endif
 
+/* Declaring a function that does not return (if we can) */
+#if defined __cplusplus && __cplusplus >= 201103L
+#    define ITEST_NORETURN [[noreturn]] void
+#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 201112L
+#    define ITEST_NORETURN _Noreturn void
+#elif defined __GNUC__ && __GNUC__ >= 3
+#    define ITEST_NORETURN void __attribute__((__noreturn__))
+#else
+#    define ITEST_NORETURN void
+#endif
+
 /*********
  * Types *
  *********/
 
-/* PASS/FAIL/SKIP result from a test. Used internally. */
+/* PASS/FAIL/SKIP result from a test. Used internally.
+   ITEST_TEST_RES_PASS must be zero, other statuses should be positive.  */
 typedef enum itest_test_res
 {
     ITEST_TEST_RES_PASS = 0,
-    ITEST_TEST_RES_FAIL = -1,
-    ITEST_TEST_RES_SKIP = 1
+    ITEST_TEST_RES_FAIL = 1,
+    ITEST_TEST_RES_SKIP = 2
 } itest_test_res;
 
 /* Info for the current running suite. */
@@ -125,10 +129,10 @@ typedef struct itest_suite_info
 typedef void itest_suite_cb(void);
 
 /* Type for a test function with no arguments.  */
-typedef enum itest_test_res itest_test_cb(void);
+typedef void itest_test_cb(void);
 
 /* Type for a test function with one argument (an environment pointer).  */
-typedef enum itest_test_res itest_test_env_cb(void *);
+typedef void itest_test_env_cb(void *udata);
 
 /* Types for setup/teardown callbacks. If non-NULL, these will be run
  * and passed the pointer to their additional data. */
@@ -236,11 +240,7 @@ typedef struct itest_run_info
     clock_t end;
 #endif
 
-#if ITEST_USE_LONGJMP
-    int pad_jmp_buf;
-    unsigned char pad_2[4];
     jmp_buf jump_dest;
-#endif
 } itest_run_info;
 
 struct itest_report_t
@@ -295,13 +295,10 @@ unsigned int itest_get_verbosity(void);
 void itest_set_verbosity(unsigned int verbosity);
 void itest_set_flag(itest_flag_t flag);
 void itest_set_test_suffix(const char *suffix);
-enum itest_test_res itest_set_test_status(const char *msg, const char *file,
-                                          unsigned int line,
-                                          enum itest_test_res res);
-#if ITEST_USE_LONGJMP
-void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
-                                            unsigned int line);
-#endif
+ITEST_NORETURN itest_fail(const char *msg, const char *file,
+                          unsigned int line);
+ITEST_NORETURN itest_skip(const char *msg, const char *file,
+                          unsigned int line);
 
 /**********
  * Macros *
@@ -318,7 +315,7 @@ void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
 
 /* Start defining a test function.
  * The arguments are not included, to allow parametric testing. */
-#define ITEST_TEST static enum itest_test_res
+#define ITEST_TEST static void
 
 /* Run a suite. */
 #define ITEST_RUN_SUITE(S_NAME) itest_run_suite(S_NAME, #S_NAME)
@@ -343,13 +340,11 @@ void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
      && (itest_info.suite.failed > 0 || itest_info.failed > 0))
 
 /* Message-less forms of tests defined below. */
-#define ITEST_PASS()                  ITEST_PASSm(NULL)
-#define ITEST_FAIL()                  ITEST_FAILm(NULL)
-#define ITEST_SKIP()                  ITEST_SKIPm(NULL)
-#define ITEST_ASSERT(COND)            ITEST_ASSERTm(#COND, COND)
-#define ITEST_ASSERT_OR_LONGJMP(COND) ITEST_ASSERT_OR_LONGJMPm(#COND, COND)
-#define ITEST_ASSERT_FALSE(COND)      ITEST_ASSERT_FALSEm(#COND, COND)
-#define ITEST_ASSERT_EQ(EXP, GOT)     ITEST_ASSERT_EQm(#EXP " != " #GOT, EXP, GOT)
+#define ITEST_FAIL()              ITEST_FAILm(NULL)
+#define ITEST_SKIP()              ITEST_SKIPm(NULL)
+#define ITEST_ASSERT(COND)        ITEST_ASSERTm(#COND, COND)
+#define ITEST_ASSERT_FALSE(COND)  ITEST_ASSERT_FALSEm(#COND, COND)
+#define ITEST_ASSERT_EQ(EXP, GOT) ITEST_ASSERT_EQm(#EXP " != " #GOT, EXP, GOT)
 #define ITEST_ASSERT_NEQ(EXP, GOT)                                           \
     ITEST_ASSERT_NEQm(#EXP " == " #GOT, EXP, GOT)
 #define ITEST_ASSERT_GT(EXP, GOT) ITEST_ASSERT_GTm(#EXP " <= " #GOT, EXP, GOT)
@@ -382,15 +377,6 @@ void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
         itest_info.assertions++;                                             \
         if (!(COND)) {                                                       \
             ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
-
-/* Fail if a condition is not true, longjmping out of test. */
-#define ITEST_ASSERT_OR_LONGJMPm(MSG, COND)                                  \
-    do {                                                                     \
-        itest_info.assertions++;                                             \
-        if (!(COND)) {                                                       \
-            ITEST_FAIL_WITH_LONGJMPm(MSG);                                   \
         }                                                                    \
     } while (0)
 
@@ -511,36 +497,11 @@ void /* noreturn */ itest_fail_with_longjmp(const char *msg, const char *file,
         }                                                                    \
     } while (0)
 
-/* Pass. */
-#define ITEST_PASSm(MSG)                                                     \
-    return itest_set_test_status(MSG, __FILE__, __LINE__, ITEST_TEST_RES_PASS)
-
 /* Fail. */
-#define ITEST_FAILm(MSG)                                                     \
-    return itest_set_test_status(MSG, __FILE__, __LINE__, ITEST_TEST_RES_FAIL)
+#define ITEST_FAILm(MSG) itest_fail(MSG, __FILE__, __LINE__)
 
 /* Skip the current test. */
-#define ITEST_SKIPm(MSG)                                                     \
-    return itest_set_test_status(MSG, __FILE__, __LINE__, ITEST_TEST_RES_SKIP)
-
-/* Optional ITEST_FAILm variant that longjmps. */
-#if ITEST_USE_LONGJMP
-#    define ITEST_FAIL_WITH_LONGJMP() ITEST_FAIL_WITH_LONGJMPm(NULL)
-#    define ITEST_FAIL_WITH_LONGJMPm(MSG)                                    \
-        do {                                                                 \
-            itest_fail_with_longjmp(MSG, __FILE__, __LINE__);                \
-            abort(); /* can't get here */                                    \
-        } while (0)
-#endif
-
-/* Check the result of a subfunction using ASSERT, etc. */
-#define ITEST_CHECK_CALL(RES)                                                \
-    do {                                                                     \
-        enum itest_test_res itest_RES = RES;                                 \
-        if (itest_RES != ITEST_TEST_RES_PASS) {                              \
-            return itest_RES;                                                \
-        }                                                                    \
-    } while (0)
+#define ITEST_SKIPm(MSG) itest_skip(MSG, __FILE__, __LINE__)
 
 /* Run every suite / test function run within BODY in pseudo-random
  * order, seeded by SEED. (The top 3 bits of the seed are ignored.)

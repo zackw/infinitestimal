@@ -89,13 +89,7 @@ FAIL example_using_subfunctions: arg < 3 (examples/basic.c:nn)
 This should fail:
 F
 FAIL parametric_example_c89: arg > 10 (examples/basic.c:nn)
-.F
-FAIL fail_via_FAIL_WITH_LONGJMP: zero argument (expected failure) (examples/basic.c:nn)
-F
-FAIL fail_via_FAIL_WITH_LONGJMP_if_0: zero argument (expected failure) (examples/basic.c:nn)
-F
-FAIL fail_via_ASSERT_OR_LONGJMP: zero argument (expected failure) (examples/basic.c:nn)
-
+.
 This should fail:
 
 Expected:
@@ -179,7 +173,7 @@ FAIL lt_pass_and_fail: x >= x (examples/basic.c:nn)
 F
 FAIL lte_pass_and_fail: z > x (examples/basic.c:nn)
 
-228 tests - 171 passed, 35 failed, 22 skipped (nn ticks, n.nnn sec)
+225 tests - 171 passed, 32 failed, 22 skipped (nn ticks, n.nnn sec)
 
 * Suite other_suite:
 .s
@@ -187,8 +181,8 @@ FAIL lte_pass_and_fail: z > x (examples/basic.c:nn)
 F
 FAIL standalone_test: (expected failure) (examples/basic.c:nn)
 
-Total: 232 tests (nn ticks, n.nnn sec), 417 assertions
-Pass: 172, fail: 37, skip: 23.
+Total: 229 tests (nn ticks, n.nnn sec), 416 assertions
+Pass: 172, fail: 34, skip: 23.
 + examples/basic: $? = 1
 + examples/basic_cplusplus
 F
@@ -369,7 +363,7 @@ Pass: 1064, fail: 2, skip: 0.
 * Suite suite:
 ...........
 11 tests - 11 passed, 0 failed, 0 skipped (nn ticks, n.nnn sec)
-sizeof(itest_info): 640
+sizeof(itest_info): 632
 
 Total: 11 tests (nn ticks, n.nnn sec), 0 assertions
 Pass: 11, fail: 0, skip: 0.

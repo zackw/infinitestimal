@@ -7,7 +7,6 @@
 TEST
 standalone_pass(void)
 {
-    PASS();
 }
 
 int

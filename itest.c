@@ -21,17 +21,6 @@
 
 /* Infinitestimal: out-of-line test harness code.  */
 
-#if ITEST_USE_LONGJMP
-#    define ITEST_SAVE_CONTEXT()                                             \
-        /* setjmp returns 0 (ITEST_TEST_RES_PASS) on first call *            \
-         * so the test runs, then RES_FAIL from FAIL_WITH_LONGJMP. */        \
-        ((enum itest_test_res)(setjmp(itest_info.jump_dest)))
-#else
-#    define ITEST_SAVE_CONTEXT()                                             \
-        /*a no-op, since setjmp/longjmp aren't being used */                 \
-        ITEST_TEST_RES_PASS
-#endif
-
 /* Query a CPU time clock.  */
 static clock_t
 itest_get_cpu_time(void)
@@ -103,11 +92,13 @@ void
 itest_run_test(itest_test_cb *test_cb, const char *test_name)
 {
     if (itest_test_pre(test_name) == 1) {
-        enum itest_test_res res = ITEST_SAVE_CONTEXT();
+        /* ITEST_TEST_RES_PASS is 0, so test_cb is called only on
+           setjmp's first return */
+        int res = setjmp(itest_info.jump_dest);
         if (res == ITEST_TEST_RES_PASS) {
-            res = test_cb();
+            test_cb();
         }
-        itest_test_post(res);
+        itest_test_post((enum itest_test_res)res);
     }
 }
 
@@ -117,35 +108,36 @@ itest_run_test_with_env(itest_test_env_cb *test_cb, const char *test_name,
                         void *env)
 {
     if (itest_test_pre(test_name) == 1) {
-        enum itest_test_res res = ITEST_SAVE_CONTEXT();
+        /* ITEST_TEST_RES_PASS is 0, so test_cb is called only on
+           setjmp's first return */
+        int res = setjmp(itest_info.jump_dest);
         if (res == ITEST_TEST_RES_PASS) {
-            res = test_cb(env);
+            test_cb(env);
         }
-        itest_test_post(res);
+        itest_test_post((enum itest_test_res)res);
     }
 }
 
-enum itest_test_res
-itest_set_test_status(const char *msg, const char *file, unsigned int line,
-                      enum itest_test_res res)
+ITEST_NORETURN
+itest_fail(const char *msg, const char *file, unsigned int line)
 {
     itest_info.fail_file = file;
     itest_info.fail_line = line;
     itest_info.msg       = msg;
-    if (res == ITEST_TEST_RES_FAIL && ITEST_ABORT_ON_FAIL()) {
+    if (ITEST_ABORT_ON_FAIL()) {
         abort();
     }
-    return res;
-}
-
-#if ITEST_USE_LONGJMP
-void /* noreturn */
-itest_fail_with_longjmp(const char *msg, const char *file, unsigned int line)
-{
-    itest_set_test_status(msg, file, line, ITEST_TEST_RES_FAIL);
     longjmp(itest_info.jump_dest, ITEST_TEST_RES_FAIL);
 }
-#endif
+
+ITEST_NORETURN
+itest_skip(const char *msg, const char *file, unsigned int line)
+{
+    itest_info.fail_file = file;
+    itest_info.fail_line = line;
+    itest_info.msg       = msg;
+    longjmp(itest_info.jump_dest, ITEST_TEST_RES_SKIP);
+}
 
 /* Before running a test, check the name filtering and
  * test shuffling state, if applicable, and then call setup hooks. */
@@ -246,13 +238,22 @@ itest_test_post(int res)
     }
 
     itest_info.running_test = 0;
-    if (res <= ITEST_TEST_RES_FAIL) {
-        itest_do_fail();
-    } else if (res >= ITEST_TEST_RES_SKIP) {
-        itest_do_skip();
-    } else if (res == ITEST_TEST_RES_PASS) {
+    switch (res) {
+    case ITEST_TEST_RES_PASS:
         itest_do_pass();
+        break;
+
+    case ITEST_TEST_RES_SKIP:
+        itest_do_skip();
+        break;
+
+    /* FIXME introduce a fail/error distinction.  */
+    case ITEST_TEST_RES_FAIL:
+    default:
+        itest_do_fail();
+        break;
     }
+
     itest_info.name_suffix = NULL;
     itest_info.suite.tests_run++;
     itest_info.col++;

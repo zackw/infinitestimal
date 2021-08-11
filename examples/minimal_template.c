@@ -6,7 +6,6 @@
 TEST
 foo_should_foo(void)
 {
-    PASS();
 }
 
 static void

@@ -9,7 +9,6 @@ SUITE(other_suite);
 TEST
 blah(void)
 {
-    PASS();
 }
 
 TEST

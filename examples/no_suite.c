@@ -13,7 +13,6 @@ standalone_fail(void)
 TEST
 standalone_pass(void)
 {
-    PASS();
 }
 
 TEST

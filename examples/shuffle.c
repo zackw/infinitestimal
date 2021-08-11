@@ -64,7 +64,6 @@ print_check_runs_and_pass(void *pid)
     } else {
         set_run(id);
     }
-    PASS();
 }
 
 TEST
@@ -170,7 +169,6 @@ just_print_and_pass(void *pid)
 {
     unsigned int id = (unsigned int)(uintptr_t)pid;
     printf("running test from suite %u\n", id);
-    PASS();
 }
 
 /* A few other single-function suites */

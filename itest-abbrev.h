@@ -60,27 +60,17 @@
 #define ASSERT_STRN_EQm  ITEST_ASSERT_STRN_EQm
 #define ASSERT_MEM_EQm   ITEST_ASSERT_MEM_EQm
 #define ASSERT_ENUM_EQm  ITEST_ASSERT_ENUM_EQm
-#define PASS             ITEST_PASS
 #define FAIL             ITEST_FAIL
 #define SKIP             ITEST_SKIP
-#define PASSm            ITEST_PASSm
 #define FAILm            ITEST_FAILm
 #define SKIPm            ITEST_SKIPm
 #define SET_SETUP        itest_set_setup_cb
 #define SET_TEARDOWN     itest_set_teardown_cb
-#define CHECK_CALL       ITEST_CHECK_CALL
 #define SHUFFLE_TESTS    ITEST_SHUFFLE_TESTS
 #define SHUFFLE_SUITES   ITEST_SHUFFLE_SUITES
 
 #ifdef ITEST_VA_ARGS
 #    define RUN_TESTp ITEST_RUN_TESTp
-#endif
-
-#if ITEST_USE_LONGJMP
-#    define ASSERT_OR_LONGJMP  ITEST_ASSERT_OR_LONGJMP
-#    define ASSERT_OR_LONGJMPm ITEST_ASSERT_OR_LONGJMPm
-#    define FAIL_WITH_LONGJMP  ITEST_FAIL_WITH_LONGJMP
-#    define FAIL_WITH_LONGJMPm ITEST_FAIL_WITH_LONGJMPm
 #endif
 
 #endif /* itest-abbrev.h */

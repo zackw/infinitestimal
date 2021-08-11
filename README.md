@@ -51,7 +51,8 @@ Based on [greatest][] but with somewhat divergent design goals.
 - **Reasonably Portable**
 
     Infinitestimal requires an ISO C99 hosted environment; notably,
-    the complete functionality of `string.h` and `stdio.h` is required.
+    the complete functionality of `string.h`, `stdio.h`, and
+    `setjmp.h` is required.
 
     [not yet implemented] There is optional support for isolating
     tests from each other, and recovering from crashes, using POSIX
@@ -65,9 +66,44 @@ Based on [greatest][] but with somewhat divergent design goals.
 
 ## Usage
 
-For now, see [`README-greatest.md`][rg].  All `GREATEST_` and
-`greatest_` prefixes have been changed to `ITEST_` and `itest_`
-respectively, but otherwise the API is nearly the same.
+For now, see [`README-greatest.md`][rg].   The API is *almost* the
+same, but a few changes have been made:
+
+ - All `GREATEST_` and `greatest_` prefixes have been changed to
+   `ITEST_` and `itest_` respectively.
+
+ - The names of the functions `itest_init`, `itest_set_setup_cb`,
+   `itest_set_teardown_cb`, and `itest_print_report` are now lower
+   case.
+
+ - `ITEST_MAIN_BEGIN` and `ITEST_MAIN_END` have been removed.  The
+   canonical test runner main() now begins with
+
+        itest_init();
+        itest_parse_options(argc, argv);
+
+    and ends with
+
+        return itest_print_report();
+
+    This avoids hiding control flow, and makes it clearer what the
+    difference is between a standalone test runner program and a test
+    suite embedded in a larger program — namely, the call to
+    `itest_parse_options`.
+
+ - `PASS()` and `PASSm()` have been removed.  A test function
+   indicates success by returning without having called `FAIL[m]()` or
+   `SKIP[m]()` or failing an assertion.  Note that (as in greatest)
+   `FAIL[m]()`, `SKIP[m]()`, and failing an assertion all cause the
+   test function to return as well.
+
+ - `CHECK_CALL` has been removed.  Subroutines of test functions can
+   use `ASSERT*`, `FAIL`, etc. and can still be called normally.
+
+ - The `_WITH_LONGJMP` macros have been removed.  _All_ ways of
+   failing or skipping a test now involve an invocation of `longjmp`.
+   It is no longer possible to configure the library to not use setjmp
+   and longjmp.
 
 A proper manual will be written Real Soon Now.
 
