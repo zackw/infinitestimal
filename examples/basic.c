@@ -83,17 +83,17 @@ boxed_int_equal_cb(const void *exp, const void *got, void *udata)
 /* Callback to print a boxed_int, used to produce an
  * "Executed X, got Y" failure message. */
 static int
-boxed_int_printf_cb(const void *t, void *udata)
+boxed_int_fprintf_cb(FILE *fp, const void *t, void *udata)
 {
     const boxed_int *bi = (const boxed_int *)t;
     (void)udata;
-    return printf("{%d}", bi->i);
+    return fprintf(fp, "{%d}", bi->i);
 }
 
 /* The struct that stores the previous two functions' pointers. */
 static itest_type_info boxed_int_type_info = {
     boxed_int_equal_cb,
-    boxed_int_printf_cb,
+    boxed_int_fprintf_cb,
 };
 
 TEST
@@ -118,7 +118,6 @@ expect_boxed_int_equal_no_print(void)
     boxed_int a = { 3 };
     boxed_int b = { 3 };
     boxed_int c = { 4 };
-    (void)boxed_int_printf_cb;
     /* succeeds */
     ASSERT_EQUAL_T(&a, &b, &boxed_int_type_info_no_print, NULL);
     /* fails */

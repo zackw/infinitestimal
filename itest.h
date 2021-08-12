@@ -19,6 +19,7 @@
 #define ITEST_H
 
 #include <stddef.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,17 +83,18 @@ typedef void itest_teardown_cb(void *udata);
  * UDATA is a closure value, passed through from ASSERT_EQUAL_T[m]. */
 typedef int itest_equal_cb(const void *expd, const void *got, void *udata);
 
-/* Type for a callback that prints a value pointed to by T.
+/* Type for a callback that prints a value pointed to by T onto stdio
+ * stream FP.
  * Return value has the same meaning as printf's.
  * UDATA is a closure value, passed through from ASSERT_EQUAL_T[m]. */
-typedef int itest_printf_cb(const void *t, void *udata);
+typedef int itest_fprintf_cb(FILE *fp, const void *t, void *udata);
 
 /* Callbacks for an arbitrary type; needed for type-specific
  * comparisons via ITEST_ASSERT_EQUAL_T[m].*/
 typedef struct itest_type_info
 {
     itest_equal_cb *equal;
-    itest_printf_cb *print;
+    itest_fprintf_cb *print;
 } itest_type_info;
 
 typedef enum itest_flag_t
@@ -153,6 +155,7 @@ int itest_shuffle_running(unsigned int id);
 /* These are part of the public itest API. */
 void itest_set_setup_cb(itest_setup_cb *cb, void *udata);
 void itest_set_teardown_cb(itest_teardown_cb *cb, void *udata);
+void itest_set_output(FILE *fp);
 void itest_init(void);
 void itest_parse_options(int argc, char **argv);
 int itest_print_report(void);

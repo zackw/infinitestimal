@@ -125,12 +125,8 @@ same, but a few changes have been made:
    This avoids a variety of situations where the preprocessor
    would have misinterpreted the block as *multiple* arguments.
 
-- itest.h now only includes stddef.h, which may break code that was
-  relying on it to include other C library headers.
-
-- The remaining compile-time configuration macros have been moved to
-  itest.c; you only need to override them when compiling itest.c (and
-  they have no effect on any other file that includes itest.h)
+- itest.h now only includes stddef.h and stdio.h, which may break code
+  that was relying on it to include other C library headers.
 
 - The `itest_info` global, the types `itest_suite_info`, `itest_prng`,
   `itest_run_info` and `itest_test_res`, and the macros
@@ -138,6 +134,17 @@ same, but a few changes have been made:
   `ITEST_LIST_ONLY` are no longer part of the public API.  New
   functions `itest_get_flag` and `itest_is_filtered` have been added
   to compensate.
+
+- The configuration macro `ITEST_STDOUT` has been removed.  You can now
+  set the FILE to which test output will be printed at runtime, with
+  the new function `itest_set_output`.
+
+  Relatedly, `itest_printf_cb` has been renamed `itest_fprintf_cb` and
+  now takes the FILE to print to as an additional argument.
+
+- The remaining compile-time configuration macros have been moved to
+  itest.c; you only need to override them when compiling itest.c (and
+  they have no effect on any other file that includes itest.h)
 
 A proper manual will be written Real Soon Now.
 

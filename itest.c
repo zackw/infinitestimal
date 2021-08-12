@@ -26,11 +26,6 @@
 #    define ITEST_DEFAULT_WIDTH 72
 #endif
 
-/* FILE *, for test logging. */
-#ifndef ITEST_STDOUT
-#    define ITEST_STDOUT stdout
-#endif
-
 /* Set to 0 to disable all use of time.h / clock(). */
 #ifndef ITEST_USE_TIME
 #    define ITEST_USE_TIME 1
@@ -131,9 +126,11 @@ typedef struct itest_run_info
 
     /* info to print about the most recent failure */
     unsigned int fail_line;
-    unsigned int pad_1;
     const char *fail_file;
     const char *msg;
+
+    /* output to this file */
+    FILE *out;
 
     /* current setup/teardown hooks and userdata */
     itest_setup_cb *setup;
@@ -181,7 +178,7 @@ itest_get_cpu_time(void)
 #if ITEST_USE_TIME
     clock_t res = clock();
     if (res == (clock_t)-1) {
-        fprintf(ITEST_STDOUT, "clock: %s\n", strerror(errno));
+        fprintf(itest_info.out, "clock: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     return res;
@@ -198,7 +195,7 @@ itest_report_interval(clock_t begin, clock_t end)
     // This subtraction must be done in unsigned arithmetic lest it
     // produce nonsense when the timer wraps around.
     unsigned long delta = (unsigned long)end - (unsigned long)begin;
-    fprintf(ITEST_STDOUT, " (%lu ticks, %.3f sec)", delta,
+    fprintf(itest_info.out, " (%lu ticks, %.3f sec)", delta,
             ((double)delta) / CLOCKS_PER_SEC);
 #endif
 }
@@ -213,15 +210,15 @@ itest_string_equal_cb(const void *exp, const void *got, void *udata)
 }
 
 static int
-itest_string_printf_cb(const void *t, void *udata)
+itest_string_fprintf_cb(FILE *fp, const void *t, void *udata)
 {
     (void)udata; /* note: does not check \0 termination. */
-    return fprintf(ITEST_STDOUT, "%s", (const char *)t);
+    return fprintf(fp, "%s", (const char *)t);
 }
 
 static const itest_type_info itest_type_info_string = {
     itest_string_equal_cb,
-    itest_string_printf_cb,
+    itest_string_fprintf_cb,
 };
 
 static int
@@ -233,11 +230,10 @@ itest_memory_equal_cb(const void *exp, const void *got, void *udata)
 
 /* Hexdump raw memory, with differences highlighted */
 static int
-itest_memory_printf_cb(const void *t, void *udata)
+itest_memory_fprintf_cb(FILE *fp, const void *t, void *udata)
 {
     itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
     const unsigned char *buf  = (const unsigned char *)t;
-    FILE *out                 = ITEST_STDOUT;
     unsigned char diff_mark;
     size_t i, line_i, line_len = 0;
     int len = 0; /* format hexdump with differences highlighted */
@@ -252,27 +248,27 @@ itest_memory_printf_cb(const void *t, void *udata)
                 diff_mark = 'X';
             }
         }
-        len += fprintf(out, "\n%04x %c ", (unsigned int)i, diff_mark);
+        len += fprintf(fp, "\n%04x %c ", (unsigned int)i, diff_mark);
         for (line_i = i; line_i < i + line_len; line_i++) {
             int m = env->exp[line_i] == env->got[line_i]; /* match? */
-            len += fprintf(out, "%02x%c", buf[line_i], m ? ' ' : '<');
+            len += fprintf(fp, "%02x%c", buf[line_i], m ? ' ' : '<');
         }
         for (line_i = 0; line_i < 16 - line_len; line_i++) {
-            len += fprintf(out, "   ");
+            len += fprintf(fp, "   ");
         }
-        fprintf(out, " ");
+        fprintf(fp, " ");
         for (line_i = i; line_i < i + line_len; line_i++) {
             unsigned char c = buf[line_i];
-            len += fprintf(out, "%c", isprint(c) ? c : '.');
+            len += fprintf(fp, "%c", isprint(c) ? c : '.');
         }
     }
-    len += fprintf(out, "\n");
+    len += fprintf(fp, "\n");
     return len;
 }
 
 static const itest_type_info itest_type_info_memory = {
     itest_memory_equal_cb,
-    itest_memory_printf_cb,
+    itest_memory_fprintf_cb,
 };
 
 /* Is FILTER a subset of NAME? */
@@ -376,7 +372,7 @@ itest_test_pre(const char *name)
             && !itest_name_match(g->name_buf, g->test_exclude, 0);
     if (itest_get_flag(ITEST_FLAG_LIST_ONLY)) { /* just listing test names */
         if (match) {
-            fprintf(ITEST_STDOUT, "  %s\n", g->name_buf);
+            fprintf(itest_info.out, "  %s\n", g->name_buf);
         }
         goto clear;
     }
@@ -413,10 +409,10 @@ itest_do_pass(void)
 {
     struct itest_run_info *g = &itest_info;
     if (itest_get_verbosity()) {
-        fprintf(ITEST_STDOUT, "PASS %s: %s", g->name_buf,
+        fprintf(itest_info.out, "PASS %s: %s", g->name_buf,
                 g->msg ? g->msg : "");
     } else {
-        fprintf(ITEST_STDOUT, ".");
+        fprintf(itest_info.out, ".");
     }
     g->suite.passed++;
 }
@@ -426,16 +422,16 @@ itest_do_fail(void)
 {
     struct itest_run_info *g = &itest_info;
     if (itest_get_verbosity()) {
-        fprintf(ITEST_STDOUT, "FAIL %s: %s (%s:%u)", g->name_buf,
+        fprintf(itest_info.out, "FAIL %s: %s (%s:%u)", g->name_buf,
                 g->msg ? g->msg : "", g->fail_file, g->fail_line);
     } else {
-        fprintf(ITEST_STDOUT, "F");
+        fprintf(itest_info.out, "F");
         g->col++; /* add linebreak if in line of '.'s */
         if (g->col != 0) {
-            fprintf(ITEST_STDOUT, "\n");
+            fprintf(itest_info.out, "\n");
             g->col = 0;
         }
-        fprintf(ITEST_STDOUT, "FAIL %s: %s (%s:%u)\n", g->name_buf,
+        fprintf(itest_info.out, "FAIL %s: %s (%s:%u)\n", g->name_buf,
                 g->msg ? g->msg : "", g->fail_file, g->fail_line);
     }
     g->suite.failed++;
@@ -446,10 +442,10 @@ itest_do_skip(void)
 {
     struct itest_run_info *g = &itest_info;
     if (itest_get_verbosity()) {
-        fprintf(ITEST_STDOUT, "SKIP %s: %s", g->name_buf,
+        fprintf(itest_info.out, "SKIP %s: %s", g->name_buf,
                 g->msg ? g->msg : "");
     } else {
-        fprintf(ITEST_STDOUT, "s");
+        fprintf(itest_info.out, "s");
     }
     g->suite.skipped++;
 }
@@ -486,19 +482,19 @@ itest_test_post(int res)
     if (itest_get_verbosity()) {
         itest_report_interval(itest_info.suite.pre_test,
                               itest_info.suite.post_test);
-        fprintf(ITEST_STDOUT, "\n");
+        fprintf(itest_info.out, "\n");
     } else if (itest_info.col % itest_info.width == 0) {
-        fprintf(ITEST_STDOUT, "\n");
+        fprintf(itest_info.out, "\n");
         itest_info.col = 0;
     }
-    fflush(ITEST_STDOUT);
+    fflush(itest_info.out);
 }
 
 static void
 report_suite(void)
 {
     if (itest_info.suite.tests_run > 0) {
-        fprintf(ITEST_STDOUT,
+        fprintf(itest_info.out,
                 "\n%u test%s - %u passed, %u failed, %u skipped",
                 itest_info.suite.tests_run,
                 itest_info.suite.tests_run == 1 ? "" : "s",
@@ -506,7 +502,7 @@ report_suite(void)
                 itest_info.suite.skipped);
         itest_report_interval(itest_info.suite.pre_suite,
                               itest_info.suite.post_suite);
-        fprintf(ITEST_STDOUT, "\n");
+        fprintf(itest_info.out, "\n");
     }
 }
 
@@ -541,7 +537,7 @@ itest_suite_pre(const char *suite_name)
     }
     p->count_run++;
     update_counts_and_reset_suite();
-    fprintf(ITEST_STDOUT, "\n* Suite %s:\n", suite_name);
+    fprintf(itest_info.out, "\n* Suite %s:\n", suite_name);
     itest_info.suite.pre_suite = itest_get_cpu_time();
     return 1;
 }
@@ -579,7 +575,7 @@ itest_assert_eq_fmt(const char *msg, const char *file, unsigned int line,
     if (!cond) {
         va_list ap;
         va_start(ap, cond);
-        vfprintf(ITEST_STDOUT, fmt, ap);
+        vfprintf(itest_info.out, fmt, ap);
         va_end(ap);
         itest_fail(msg, file, line);
     }
@@ -591,8 +587,8 @@ itest_assert_eq_enum(const char *msg, const char *file, unsigned int line,
 {
     itest_info.assertions++;
     if (exp != got) {
-        fprintf(ITEST_STDOUT, "\nExpected: %s", enum_str(exp));
-        fprintf(ITEST_STDOUT, "\n     Got: %s\n", enum_str(got));
+        fprintf(itest_info.out, "\nExpected: %s", enum_str(exp));
+        fprintf(itest_info.out, "\n     Got: %s\n", enum_str(got));
         itest_fail(msg, file, line);
     }
 }
@@ -603,7 +599,7 @@ itest_assert_in_range(const char *msg, const char *file, unsigned int line,
 {
     itest_info.assertions++;
     if ((exp > got && exp - got > tol) || (exp < got && got - exp > tol)) {
-        fprintf(ITEST_STDOUT,
+        fprintf(itest_info.out,
                 "\nExpected: %g +/- %g"
                 "\n     Got: %g\n",
                 exp, tol, got);
@@ -622,11 +618,12 @@ itest_assert_equal_t(const char *msg, const char *file, unsigned int line,
     }
     if (!type_info->equal(exp, got, udata)) {
         if (type_info->print != NULL) {
-            fprintf(ITEST_STDOUT, "\nExpected: ");
-            (void)type_info->print(exp, udata);
-            fprintf(ITEST_STDOUT, "\n     Got: ");
-            (void)type_info->print(got, udata);
-            fprintf(ITEST_STDOUT, "\n");
+            FILE *out = itest_info.out;
+            fputs("\nExpected: ", out);
+            (void)type_info->print(out, exp, udata);
+            fputs("\n     Got: ", out);
+            (void)type_info->print(out, got, udata);
+            fputc('\n', out);
         }
         itest_fail(msg, file, line);
     }
@@ -663,7 +660,7 @@ itest_assert_equal_mem(const char *msg, const char *file, unsigned int line,
 static void
 itest_usage(const char *name)
 {
-    fprintf(ITEST_STDOUT,
+    fprintf(itest_info.out,
             "Usage: %s [-hlfavex] [-s SUITE] [-t TEST] [-x EXCLUDE]\n"
             "  -h, --help  print this Help\n"
             "  -l          List suites and tests, then exit (dry run)\n"
@@ -727,7 +724,7 @@ itest_parse_options(int argc, char **argv)
                 } else if (0 == strcmp("--", argv[i])) {
                     return; /* ignore following arguments */
                 }
-                fprintf(ITEST_STDOUT, "Unknown argument '%s'\n", argv[i]);
+                fprintf(itest_info.out, "Unknown argument '%s'\n", argv[i]);
                 itest_usage(argv[0]);
                 exit(EXIT_FAILURE);
             }
@@ -845,6 +842,12 @@ itest_set_teardown_cb(itest_teardown_cb *cb, void *udata)
     itest_info.teardown_udata = udata;
 }
 
+void
+itest_set_output(FILE *fp)
+{
+    itest_info.out = fp;
+}
+
 /* Test shuffling uses a linear congruential pseudorandom number
  * generator, with the power-of-two ceiling of the test count as the
  * modulus, the masked seed as the multiplier, and a prime as the
@@ -917,6 +920,7 @@ itest_init(void)
     memset(&itest_info, 0, sizeof(itest_info));
     itest_info.width = ITEST_DEFAULT_WIDTH;
     itest_info.begin = itest_get_cpu_time();
+    itest_info.out   = stdout;
 }
 
 /* Report passes, failures, skipped tests, the number of
@@ -933,12 +937,12 @@ itest_print_report(void)
 
     update_counts_and_reset_suite();
     itest_info.end = itest_get_cpu_time();
-    fprintf(ITEST_STDOUT, "\nTotal: %u test%s", itest_info.tests_run,
+    fprintf(itest_info.out, "\nTotal: %u test%s", itest_info.tests_run,
             itest_info.tests_run == 1 ? "" : "s");
     itest_report_interval(itest_info.begin, itest_info.end);
-    fprintf(ITEST_STDOUT, ", %u assertion%s\n", itest_info.assertions,
+    fprintf(itest_info.out, ", %u assertion%s\n", itest_info.assertions,
             itest_info.assertions == 1 ? "" : "s");
-    fprintf(ITEST_STDOUT, "Pass: %u, fail: %u, skip: %u.\n",
+    fprintf(itest_info.out, "Pass: %u, fail: %u, skip: %u.\n",
             itest_info.passed, itest_info.failed, itest_info.skipped);
 
     return itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE;
