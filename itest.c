@@ -686,50 +686,69 @@ itest_set_teardown_cb(itest_teardown_cb *cb, void *udata)
     itest_info.teardown_udata = udata;
 }
 
+/* Test shuffling uses a linear congruential pseudorandom number
+ * generator, with the power-of-two ceiling of the test count as the
+ * modulus, the masked seed as the multiplier, and a prime as the
+ * increment. For each generated value < the test count, we run the
+ * corresponding test.  This is guaranteed to visit all IDs 0 <= X < mod
+ * once before repeating, with a starting position chosen based on
+ * the initial seed.  For details, see: Knuth, The Art of Computer
+ * Programming Volume. 2, section 3.2.1.
+ */
 void
-itest_prng_init_first_pass(int id)
+itest_shuffle_init(unsigned int id, unsigned long seed)
 {
-    itest_info.prng[id].random_order = 1;
-    itest_info.prng[id].count_run    = 0;
+    struct itest_prng *p = &itest_info.prng[id];
+    p->random_order      = 1;
+    p->count             = 0;
+    p->count_run         = 0;
+    p->initialized       = 0; /* first pass: count the tests/suites */
+    p->state             = seed & 0x1fffffff;     /* only use lower 29 bits */
+    p->a                 = 4LU * p->state;        /* to avoid overflow when */
+    p->a                 = (p->a ? p->a : 4) | 1; /* multiplied by 4 */
+    p->c                 = 2147483647; /* and so p->c ((2 ** 31) - 1) is
+                                          always relatively prime to p->a. */
 }
 
+void
+itest_shuffle_next(unsigned int id)
+{
+    struct itest_prng *p = &itest_info.prng[id];
+    if (p->initialized) {
+        /* Step the pseudorandom number generator until its state reaches
+           another test ID between 0 and the test count. */
+        do {
+            p->state = ((p->a * p->state) + p->c) & (p->m - 1);
+        } while (p->state >= p->count_ceil);
+
+    } else {
+        /* done counting tests, finish initialization */
+        p->initialized = 1;
+        p->count_ceil  = p->count;
+        if (p->count == 0) {
+            return;
+        }
+        p->m = 1;
+        while (p->m < p->count) {
+            p->m <<= 1;
+        }
+        fprintf(stderr, "init_second_pass: a %lu, c %lu, state %lu\n", p->a,
+                p->c, p->state);
+    }
+    p->count = 0;
+}
+
+/* Return true if shuffle ID is still running.  */
 int
-itest_prng_init_second_pass(int id, unsigned long seed)
+itest_shuffle_running(unsigned int id)
 {
     struct itest_prng *p = &itest_info.prng[id];
-    if (p->count == 0) {
-        return 0;
+    if ((!p->initialized || p->count_run < p->count_ceil)
+        && !ITEST_FAILURE_ABORT()) {
+        return 1;
     }
-    p->count_ceil = p->count;
-    for (p->m = 1; p->m < p->count; p->m <<= 1) {
-    }
-    p->state       = seed & 0x1fffffff;     /* only use lower 29 bits */
-    p->a           = 4LU * p->state;        /* to avoid overflow when */
-    p->a           = (p->a ? p->a : 4) | 1; /* multiplied by 4 */
-    p->c           = 2147483647; /* and so p->c ((2 ** 31) - 1) is */
-    p->initialized = 1;          /* always relatively prime to p->a. */
-    fprintf(stderr, "init_second_pass: a %lu, c %lu, state %lu\n", p->a, p->c,
-            p->state);
-    return 1;
-}
-
-/* Step the pseudorandom number generator until its state reaches
- * another test ID between 0 and the test count.
- * This use a linear congruential pseudorandom number generator,
- * with the power-of-two ceiling of the test count as the modulus, the
- * masked seed as the multiplier, and a prime as the increment. For
- * each generated value < the test count, run the corresponding test.
- * This will visit all IDs 0 <= X < mod once before repeating,
- * with a starting position chosen based on the initial seed.
- * For details, see: Knuth, The Art of Computer Programming
- * Volume. 2, section 3.2.1. */
-void
-itest_prng_step(int id)
-{
-    struct itest_prng *p = &itest_info.prng[id];
-    do {
-        p->state = ((p->a * p->state) + p->c) & (p->m - 1);
-    } while (p->state >= p->count_ceil);
+    memset(p, 0, sizeof *p);
+    return 0;
 }
 
 void

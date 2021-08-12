@@ -122,7 +122,7 @@ SUITE(suite1)
         }                                                                    \
     } while (0)
 
-        SHUFFLE_TESTS(seed, {
+        SHUFFLE_TESTS (seed) {
             COUNT_RUN(0);
             COUNT_RUN(1);
             COUNT_RUN(2);
@@ -134,7 +134,7 @@ SUITE(suite1)
             COUNT_RUN(8);
             COUNT_RUN(9);
             COUNT_RUN(10);
-        });
+        }
 #undef COUNT_RUN
 
         for (i = 0; i < count; i++) {
@@ -149,12 +149,12 @@ SUITE(suite1)
     print_flag = 0;
 
     /* Check that all are run exactly once, for a larger amount of tests */
-    SHUFFLE_TESTS(seed_of_time(), {
+    SHUFFLE_TESTS (seed_of_time()) {
         for (i = 0; i < limit; i++) {
             set_suffix(i);
             RUN_TEST1(print_check_runs_and_pass, (void *)(uintptr_t)i);
         }
-    });
+    }
 
     for (i = 0; i < limit; i++) {
         if (running_all() && !check_run(i)) {
@@ -200,7 +200,7 @@ SUITE(suite_failure)
 
 SUITE(suite_shuffle_pass_and_failure)
 {
-    SHUFFLE_TESTS(seed_of_time(), {
+    SHUFFLE_TESTS (seed_of_time()) {
         set_suffix(1);
         RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)1);
         set_suffix(2);
@@ -212,7 +212,7 @@ SUITE(suite_shuffle_pass_and_failure)
         set_suffix(5);
         RUN_TEST1(just_print_and_pass, (void *)(uintptr_t)5);
         RUN_TEST(just_fail);
-    });
+    }
 }
 
 /* PRNG internal state assumes uint32_t values */
@@ -227,7 +227,7 @@ main(int argc, char **argv)
     itest_init();
     itest_parse_options(argc, argv);
 
-    SHUFFLE_SUITES(seed_of_time(), {
+    SHUFFLE_SUITES (seed_of_time()) {
         RUN_SUITE(suite1);
         RUN_SUITE(suite2);
         RUN_SUITE(suite3);
@@ -235,7 +235,7 @@ main(int argc, char **argv)
         RUN_SUITE(suite5);
         RUN_SUITE(suite_shuffle_pass_and_failure);
         RUN_SUITE(suite_failure);
-    });
+    }
 
     return itest_print_report();
 }

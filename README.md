@@ -111,6 +111,20 @@ same, but a few changes have been made:
    per-build) way to vary the type of the EXP and GOT arguments to
    `ITEST_ASSERT_IN_RANGE` may be added in the future.
 
+ - The `ITEST_SHUFFLE_TESTS` and `ITEST_SHUFFLE_SUITES` macros no
+   longer take a block of code as an argument.  The block is instead
+   written immediately after the macro call, as if it were the body of
+   a loop, like this:
+
+        SHUFFLE_TESTS (seed) {
+            RUN_TEST(foo);
+            RUN_TEST(bar);
+            RUN_TEST(baz);
+        }
+
+   This avoids a variety of situations where the preprocessor
+   would have misinterpreted the block as *multiple* arguments.
+
 A proper manual will be written Real Soon Now.
 
 ## Licensing

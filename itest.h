@@ -277,9 +277,9 @@ void itest_assert_equal_t(const void *expd, const void *got,
                           const char *file, unsigned int line,
                           const char *msg);
 
-void itest_prng_init_first_pass(int id);
-int itest_prng_init_second_pass(int id, unsigned long seed);
-void itest_prng_step(int id);
+void itest_shuffle_init(unsigned int id, unsigned long seed);
+void itest_shuffle_next(unsigned int id);
+int itest_shuffle_running(unsigned int id);
 
 /* These are part of the public itest API. */
 void itest_set_setup_cb(itest_setup_cb *cb, void *udata);
@@ -441,40 +441,24 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
 /* Skip the current test. */
 #define ITEST_SKIPm(MSG) itest_skip(MSG, __FILE__, __LINE__)
 
-/* Run every suite / test function run within BODY in pseudo-random
+/* Run every suite / test function run within a block in pseudo-random
  * order, seeded by SEED. (The top 3 bits of the seed are ignored.)
  *
- * This should be called like:
- *     ITEST_SHUFFLE_TESTS(seed, {
+ * These macros expand to for-loop heads. They should be called like:
+ *     ITEST_SHUFFLE_TESTS(seed) {
  *         ITEST_RUN_TEST(some_test);
  *         ITEST_RUN_TEST(some_other_test);
  *         ITEST_RUN_TEST(yet_another_test);
- *     });
+ *     }
  *
- * Note that the body of the second argument will be evaluated
- * multiple times. */
-#define ITEST_SHUFFLE_SUITES(SD, BODY) ITEST_SHUFFLE(0, SD, BODY)
-#define ITEST_SHUFFLE_TESTS(SD, BODY)  ITEST_SHUFFLE(1, SD, BODY)
-#define ITEST_SHUFFLE(ID, SD, BODY)                                          \
-    do {                                                                     \
-        struct itest_prng *prng = &itest_info.prng[ID];                      \
-        itest_prng_init_first_pass(ID);                                      \
-        do {                                                                 \
-            prng->count = 0;                                                 \
-            if (prng->initialized) {                                         \
-                itest_prng_step(ID);                                         \
-            }                                                                \
-            BODY; /* NOLINT(bugprone-macro-parentheses) */                   \
-            if (!prng->initialized) {                                        \
-                if (!itest_prng_init_second_pass(ID, SD)) {                  \
-                    break;                                                   \
-                }                                                            \
-            } else if (prng->count_run == prng->count_ceil) {                \
-                break;                                                       \
-            }                                                                \
-        } while (!ITEST_FAILURE_ABORT());                                    \
-        prng->count_run = prng->random_order = prng->initialized = 0;        \
-    } while (0)
+ * The loop body will be executed many times.  Avoid putting code other
+ * than calls to ITEST_RUN_TEST/SUITE inside.
+ */
+#define ITEST_SHUFFLE_SUITES(SD) ITEST_SHUFFLE(0, SD)
+#define ITEST_SHUFFLE_TESTS(SD)  ITEST_SHUFFLE(1, SD)
+#define ITEST_SHUFFLE(ID, SD)                                                \
+    for (itest_shuffle_init(ID, SD); itest_shuffle_running(ID);              \
+         itest_shuffle_next(ID))
 
 #if defined(__cplusplus)
 } /* extern "C" */

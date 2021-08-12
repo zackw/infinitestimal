@@ -7,6 +7,11 @@ UseCRLF: false
 UseTab: Never
 
 AttributeMacros: []
+ForEachMacros:
+  - ITEST_SHUFFLE_SUITES
+  - ITEST_SHUFFLE_TESTS
+  - SHUFFLE_SUITES
+  - SHUFFLE_TESTS
 
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveBitFields:   Consecutive
