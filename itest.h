@@ -58,12 +58,6 @@ extern "C" {
 #    define ITEST_STDOUT stdout
 #endif
 
-/* Make it possible to replace fprintf with another
- * function with the same interface. */
-#ifndef ITEST_FPRINTF
-#    define ITEST_FPRINTF fprintf
-#endif
-
 /* Set to 0 to disable all use of time.h / clock(). */
 #ifndef ITEST_USE_TIME
 #    define ITEST_USE_TIME 1
@@ -71,12 +65,6 @@ extern "C" {
 
 #if ITEST_USE_TIME
 #    include <time.h>
-#endif
-
-/* Floating point type, for ASSERT_IN_RANGE. */
-#ifndef ITEST_FLOAT
-#    define ITEST_FLOAT     double
-#    define ITEST_FLOAT_FMT "%g"
 #endif
 
 /* Size of buffer for test name + optional '_' separator and suffix */
@@ -93,6 +81,14 @@ extern "C" {
 #    define ITEST_NORETURN void __attribute__((__noreturn__))
 #else
 #    define ITEST_NORETURN void
+#endif
+
+/* Declaring a function that takes a printf format string (if we can) */
+#if defined __GNUC__ && __GNUC__ >= 3
+#    define ITEST_PRINTFLIKE(x, y)                                           \
+        __attribute__((__format__(__printf__, x, y)))
+#else
+#    define ITEST_PRINTFLIKE(x, y) /* nothing */
 #endif
 
 /*********
@@ -255,6 +251,18 @@ typedef const char *itest_enum_str_fun(int value);
 /* These are used internally by itest macros. */
 int itest_test_pre(const char *name);
 void itest_test_post(int res);
+
+void itest_assert(const char *msg, const char *file, unsigned int line,
+                  int cond);
+void itest_assert_eq_fmt(const char *msg, const char *file, unsigned int line,
+                         const char *fmt, int cond, ...)
+    ITEST_PRINTFLIKE(4, 6);
+void itest_assert_eq_enum(const char *msg, const char *file,
+                          unsigned int line, itest_enum_str_fun enum_str,
+                          int exp, int got);
+void itest_assert_in_range(const char *msg, const char *file,
+                           unsigned int line, double exp, double got,
+                           double tol);
 void itest_assert_equal_str(const char *expd, const char *got,
                             const char *file, unsigned int line,
                             const char *msg);
@@ -264,11 +272,11 @@ void itest_assert_equal_strn(const char *expd, const char *got, size_t size,
 void itest_assert_equal_mem(const void *expd, const void *got, size_t size,
                             const char *file, unsigned int line,
                             const char *msg);
-
 void itest_assert_equal_t(const void *expd, const void *got,
                           const itest_type_info *type_info, void *udata,
                           const char *file, unsigned int line,
                           const char *msg);
+
 void itest_prng_init_first_pass(int id);
 int itest_prng_init_second_pass(int id, unsigned long seed);
 void itest_prng_step(int id);
@@ -373,31 +381,15 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
  * to be displayed by the test runner. */
 
 /* Fail if a condition is not true, with message. */
-#define ITEST_ASSERTm(MSG, COND)                                             \
-    do {                                                                     \
-        itest_info.assertions++;                                             \
-        if (!(COND)) {                                                       \
-            ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
+#define ITEST_ASSERTm(MSG, COND) itest_assert(MSG, __FILE__, __LINE__, COND)
 
 /* Fail if a condition is not false, with message. */
 #define ITEST_ASSERT_FALSEm(MSG, COND)                                       \
-    do {                                                                     \
-        itest_info.assertions++;                                             \
-        if ((COND)) {                                                        \
-            ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
+    itest_assert(MSG, __FILE__, __LINE__, !(COND))
 
 /* Internal macro for relational assertions */
 #define ITEST__REL(REL, MSG, EXP, GOT)                                       \
-    do {                                                                     \
-        itest_info.assertions++;                                             \
-        if (!((EXP)REL(GOT))) {                                              \
-            ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
+    itest_assert(MSG, __FILE__, __LINE__, ((EXP)REL(GOT)))
 
 /* Fail if EXP is not ==, !=, >, <, >=, or <= to GOT. */
 #define ITEST_ASSERT_EQm(MSG, E, G)  ITEST__REL(==, MSG, E, G)
@@ -407,55 +399,23 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
 #define ITEST_ASSERT_LTm(MSG, E, G)  ITEST__REL(<, MSG, E, G)
 #define ITEST_ASSERT_LTEm(MSG, E, G) ITEST__REL(<=, MSG, E, G)
 
-/* Fail if EXP != GOT (equality comparison by ==).
- * Warning: FMT, EXP, and GOT will be evaluated more
- * than once on failure. */
+/* Fail if EXP != GOT (equality comparison by ==).  FMT must be a
+ * string literal containing a single printf format specifier which
+ * agrees with  the type of both EXP and GOT.
+ * Warning: EXP and GOT will be evaluated exactly twice each.  */
 #define ITEST_ASSERT_EQ_FMTm(MSG, EXP, GOT, FMT)                             \
-    do {                                                                     \
-        itest_info.assertions++;                                             \
-        if ((EXP) != (GOT)) {                                                \
-            ITEST_FPRINTF(ITEST_STDOUT, "\nExpected: ");                     \
-            ITEST_FPRINTF(ITEST_STDOUT, FMT, EXP);                           \
-            ITEST_FPRINTF(ITEST_STDOUT, "\n     Got: ");                     \
-            ITEST_FPRINTF(ITEST_STDOUT, FMT, GOT);                           \
-            ITEST_FPRINTF(ITEST_STDOUT, "\n");                               \
-            ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
+    itest_assert_eq_fmt(MSG, __FILE__, __LINE__,                             \
+                        "\nExpected: " FMT "\n     Got: " FMT "\n",          \
+                        (GOT) == (EXP), EXP, GOT);
 
 /* Fail if EXP is not equal to GOT, printing enum IDs. */
 #define ITEST_ASSERT_ENUM_EQm(MSG, EXP, GOT, ENUM_STR)                       \
-    do {                                                                     \
-        int itest_EXP                      = (int)(EXP);                     \
-        int itest_GOT                      = (int)(GOT);                     \
-        itest_enum_str_fun *itest_ENUM_STR = ENUM_STR;                       \
-        if (itest_EXP != itest_GOT) {                                        \
-            ITEST_FPRINTF(ITEST_STDOUT, "\nExpected: %s",                    \
-                          itest_ENUM_STR(itest_EXP));                        \
-            ITEST_FPRINTF(ITEST_STDOUT, "\n     Got: %s\n",                  \
-                          itest_ENUM_STR(itest_GOT));                        \
-            ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
+    itest_assert_eq_enum(MSG, __FILE__, __LINE__, ENUM_STR, (int)(EXP),      \
+                         (int)(GOT))
 
 /* Fail if GOT not in range of EXP +|- TOL. */
 #define ITEST_ASSERT_IN_RANGEm(MSG, EXP, GOT, TOL)                           \
-    do {                                                                     \
-        ITEST_FLOAT itest_EXP = (EXP);                                       \
-        ITEST_FLOAT itest_GOT = (GOT);                                       \
-        ITEST_FLOAT itest_TOL = (TOL);                                       \
-        itest_info.assertions++;                                             \
-        if ((itest_EXP > itest_GOT && itest_EXP - itest_GOT > itest_TOL)     \
-            || (itest_EXP < itest_GOT                                        \
-                && itest_GOT - itest_EXP > itest_TOL)) {                     \
-            ITEST_FPRINTF(ITEST_STDOUT,                                      \
-                          "\nExpected: " ITEST_FLOAT_FMT                     \
-                          " +/- " ITEST_FLOAT_FMT                            \
-                          "\n     Got: " ITEST_FLOAT_FMT "\n",               \
-                          itest_EXP, itest_TOL, itest_GOT);                  \
-            ITEST_FAILm(MSG);                                                \
-        }                                                                    \
-    } while (0)
+    itest_assert_in_range(MSG, __FILE__, __LINE__, EXP, GOT, TOL)
 
 /* Fail if EXP is not equal to GOT, according to strcmp. */
 #define ITEST_ASSERT_STR_EQm(MSG, EXP, GOT)                                  \

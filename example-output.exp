@@ -181,7 +181,7 @@ FAIL lte_pass_and_fail: z > x (examples/basic.c:nn)
 F
 FAIL standalone_test: (expected failure) (examples/basic.c:nn)
 
-Total: 229 tests (nn ticks, n.nnn sec), 416 assertions
+Total: 229 tests (nn ticks, n.nnn sec), 417 assertions
 Pass: 172, fail: 34, skip: 23.
 + examples/basic: $? = 1
 + examples/basic_cplusplus

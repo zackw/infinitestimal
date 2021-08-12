@@ -18,6 +18,7 @@
 #include "itest.h"
 
 #include <errno.h>
+#include <stdarg.h>
 
 /* Infinitestimal: out-of-line test harness code.  */
 
@@ -35,7 +36,7 @@ itest_get_cpu_time(void)
 #if ITEST_USE_TIME
     clock_t res = clock();
     if (res == (clock_t)-1) {
-        ITEST_FPRINTF(ITEST_STDOUT, "clock: %s\n", strerror(errno));
+        fprintf(ITEST_STDOUT, "clock: %s\n", strerror(errno));
         exit(EXIT_FAILURE);
     }
     return res;
@@ -52,8 +53,8 @@ itest_report_interval(clock_t begin, clock_t end)
     // This subtraction must be done in unsigned arithmetic lest it
     // produce nonsense when the timer wraps around.
     unsigned long delta = (unsigned long)end - (unsigned long)begin;
-    ITEST_FPRINTF(ITEST_STDOUT, " (%lu ticks, %.3f sec)", delta,
-                  ((double)delta) / CLOCKS_PER_SEC);
+    fprintf(ITEST_STDOUT, " (%lu ticks, %.3f sec)", delta,
+            ((double)delta) / CLOCKS_PER_SEC);
 #endif
 }
 
@@ -70,7 +71,7 @@ static int
 itest_string_printf_cb(const void *t, void *udata)
 {
     (void)udata; /* note: does not check \0 termination. */
-    return ITEST_FPRINTF(ITEST_STDOUT, "%s", (const char *)t);
+    return fprintf(ITEST_STDOUT, "%s", (const char *)t);
 }
 
 static const itest_type_info itest_type_info_string = {
@@ -106,21 +107,21 @@ itest_memory_printf_cb(const void *t, void *udata)
                 diff_mark = 'X';
             }
         }
-        len += ITEST_FPRINTF(out, "\n%04x %c ", (unsigned int)i, diff_mark);
+        len += fprintf(out, "\n%04x %c ", (unsigned int)i, diff_mark);
         for (line_i = i; line_i < i + line_len; line_i++) {
             int m = env->exp[line_i] == env->got[line_i]; /* match? */
-            len += ITEST_FPRINTF(out, "%02x%c", buf[line_i], m ? ' ' : '<');
+            len += fprintf(out, "%02x%c", buf[line_i], m ? ' ' : '<');
         }
         for (line_i = 0; line_i < 16 - line_len; line_i++) {
-            len += ITEST_FPRINTF(out, "   ");
+            len += fprintf(out, "   ");
         }
-        ITEST_FPRINTF(out, " ");
+        fprintf(out, " ");
         for (line_i = i; line_i < i + line_len; line_i++) {
             unsigned char c = buf[line_i];
-            len += ITEST_FPRINTF(out, "%c", isprint(c) ? c : '.');
+            len += fprintf(out, "%c", isprint(c) ? c : '.');
         }
     }
-    len += ITEST_FPRINTF(out, "\n");
+    len += fprintf(out, "\n");
     return len;
 }
 
@@ -230,7 +231,7 @@ itest_test_pre(const char *name)
             && !itest_name_match(g->name_buf, g->test_exclude, 0);
     if (ITEST_LIST_ONLY()) { /* just listing test names */
         if (match) {
-            ITEST_FPRINTF(ITEST_STDOUT, "  %s\n", g->name_buf);
+            fprintf(ITEST_STDOUT, "  %s\n", g->name_buf);
         }
         goto clear;
     }
@@ -266,10 +267,10 @@ itest_do_pass(void)
 {
     struct itest_run_info *g = &itest_info;
     if (ITEST_IS_VERBOSE()) {
-        ITEST_FPRINTF(ITEST_STDOUT, "PASS %s: %s", g->name_buf,
-                      g->msg ? g->msg : "");
+        fprintf(ITEST_STDOUT, "PASS %s: %s", g->name_buf,
+                g->msg ? g->msg : "");
     } else {
-        ITEST_FPRINTF(ITEST_STDOUT, ".");
+        fprintf(ITEST_STDOUT, ".");
     }
     g->suite.passed++;
 }
@@ -279,17 +280,17 @@ itest_do_fail(void)
 {
     struct itest_run_info *g = &itest_info;
     if (ITEST_IS_VERBOSE()) {
-        ITEST_FPRINTF(ITEST_STDOUT, "FAIL %s: %s (%s:%u)", g->name_buf,
-                      g->msg ? g->msg : "", g->fail_file, g->fail_line);
+        fprintf(ITEST_STDOUT, "FAIL %s: %s (%s:%u)", g->name_buf,
+                g->msg ? g->msg : "", g->fail_file, g->fail_line);
     } else {
-        ITEST_FPRINTF(ITEST_STDOUT, "F");
+        fprintf(ITEST_STDOUT, "F");
         g->col++; /* add linebreak if in line of '.'s */
         if (g->col != 0) {
-            ITEST_FPRINTF(ITEST_STDOUT, "\n");
+            fprintf(ITEST_STDOUT, "\n");
             g->col = 0;
         }
-        ITEST_FPRINTF(ITEST_STDOUT, "FAIL %s: %s (%s:%u)\n", g->name_buf,
-                      g->msg ? g->msg : "", g->fail_file, g->fail_line);
+        fprintf(ITEST_STDOUT, "FAIL %s: %s (%s:%u)\n", g->name_buf,
+                g->msg ? g->msg : "", g->fail_file, g->fail_line);
     }
     g->suite.failed++;
 }
@@ -299,10 +300,10 @@ itest_do_skip(void)
 {
     struct itest_run_info *g = &itest_info;
     if (ITEST_IS_VERBOSE()) {
-        ITEST_FPRINTF(ITEST_STDOUT, "SKIP %s: %s", g->name_buf,
-                      g->msg ? g->msg : "");
+        fprintf(ITEST_STDOUT, "SKIP %s: %s", g->name_buf,
+                g->msg ? g->msg : "");
     } else {
-        ITEST_FPRINTF(ITEST_STDOUT, "s");
+        fprintf(ITEST_STDOUT, "s");
     }
     g->suite.skipped++;
 }
@@ -339,9 +340,9 @@ itest_test_post(int res)
     if (ITEST_IS_VERBOSE()) {
         itest_report_interval(itest_info.suite.pre_test,
                               itest_info.suite.post_test);
-        ITEST_FPRINTF(ITEST_STDOUT, "\n");
+        fprintf(ITEST_STDOUT, "\n");
     } else if (itest_info.col % itest_info.width == 0) {
-        ITEST_FPRINTF(ITEST_STDOUT, "\n");
+        fprintf(ITEST_STDOUT, "\n");
         itest_info.col = 0;
     }
     fflush(ITEST_STDOUT);
@@ -351,15 +352,15 @@ static void
 report_suite(void)
 {
     if (itest_info.suite.tests_run > 0) {
-        ITEST_FPRINTF(ITEST_STDOUT,
-                      "\n%u test%s - %u passed, %u failed, %u skipped",
-                      itest_info.suite.tests_run,
-                      itest_info.suite.tests_run == 1 ? "" : "s",
-                      itest_info.suite.passed, itest_info.suite.failed,
-                      itest_info.suite.skipped);
+        fprintf(ITEST_STDOUT,
+                "\n%u test%s - %u passed, %u failed, %u skipped",
+                itest_info.suite.tests_run,
+                itest_info.suite.tests_run == 1 ? "" : "s",
+                itest_info.suite.passed, itest_info.suite.failed,
+                itest_info.suite.skipped);
         itest_report_interval(itest_info.suite.pre_suite,
                               itest_info.suite.post_suite);
-        ITEST_FPRINTF(ITEST_STDOUT, "\n");
+        fprintf(ITEST_STDOUT, "\n");
     }
 }
 
@@ -394,7 +395,7 @@ itest_suite_pre(const char *suite_name)
     }
     p->count_run++;
     update_counts_and_reset_suite();
-    ITEST_FPRINTF(ITEST_STDOUT, "\n* Suite %s:\n", suite_name);
+    fprintf(ITEST_STDOUT, "\n* Suite %s:\n", suite_name);
     itest_info.suite.pre_suite = itest_get_cpu_time();
     return 1;
 }
@@ -416,6 +417,55 @@ itest_run_suite(itest_suite_cb *suite_cb, const char *suite_name)
 }
 
 void
+itest_assert(const char *msg, const char *file, unsigned int line, int cond)
+{
+    itest_info.assertions++;
+    if (!cond) {
+        itest_fail(msg, file, line);
+    }
+}
+
+void
+itest_assert_eq_fmt(const char *msg, const char *file, unsigned int line,
+                    const char *fmt, int cond, ...)
+{
+    itest_info.assertions++;
+    if (!cond) {
+        va_list ap;
+        va_start(ap, cond);
+        vfprintf(ITEST_STDOUT, fmt, ap);
+        va_end(ap);
+        itest_fail(msg, file, line);
+    }
+}
+
+void
+itest_assert_eq_enum(const char *msg, const char *file, unsigned int line,
+                     itest_enum_str_fun enum_str, int exp, int got)
+{
+    itest_info.assertions++;
+    if (exp != got) {
+        fprintf(ITEST_STDOUT, "\nExpected: %s", enum_str(exp));
+        fprintf(ITEST_STDOUT, "\n     Got: %s\n", enum_str(got));
+        itest_fail(msg, file, line);
+    }
+}
+
+void
+itest_assert_in_range(const char *msg, const char *file, unsigned int line,
+                      double exp, double got, double tol)
+{
+    itest_info.assertions++;
+    if ((exp > got && exp - got > tol) || (exp < got && got - exp > tol)) {
+        fprintf(ITEST_STDOUT,
+                "\nExpected: %g +/- %g"
+                "\n     Got: %g\n",
+                exp, tol, got);
+        itest_fail(msg, file, line);
+    }
+}
+
+void
 itest_assert_equal_t(const void *expd, const void *got,
                      const itest_type_info *type_info, void *udata,
                      const char *file, unsigned int line, const char *msg)
@@ -426,11 +476,11 @@ itest_assert_equal_t(const void *expd, const void *got,
     }
     if (!type_info->equal(expd, got, udata)) {
         if (type_info->print != NULL) {
-            ITEST_FPRINTF(ITEST_STDOUT, "\nExpected: ");
+            fprintf(ITEST_STDOUT, "\nExpected: ");
             (void)type_info->print(expd, udata);
-            ITEST_FPRINTF(ITEST_STDOUT, "\n     Got: ");
+            fprintf(ITEST_STDOUT, "\n     Got: ");
             (void)type_info->print(got, udata);
-            ITEST_FPRINTF(ITEST_STDOUT, "\n");
+            fprintf(ITEST_STDOUT, "\n");
         }
         itest_fail(msg, file, line);
     }
@@ -467,19 +517,18 @@ itest_assert_equal_mem(const void *expd, const void *got, size_t size,
 static void
 itest_usage(const char *name)
 {
-    ITEST_FPRINTF(
-        ITEST_STDOUT,
-        "Usage: %s [-hlfavex] [-s SUITE] [-t TEST] [-x EXCLUDE]\n"
-        "  -h, --help  print this Help\n"
-        "  -l          List suites and tests, then exit (dry run)\n"
-        "  -f          Stop runner after first failure\n"
-        "  -a          Abort on first failure (implies -f)\n"
-        "  -v          Verbose output\n"
-        "  -s SUITE    only run suites containing substring SUITE\n"
-        "  -t TEST     only run tests containing substring TEST\n"
-        "  -e          only run exact name match for -s or -t\n"
-        "  -x EXCLUDE  exclude tests containing substring EXCLUDE\n",
-        name);
+    fprintf(ITEST_STDOUT,
+            "Usage: %s [-hlfavex] [-s SUITE] [-t TEST] [-x EXCLUDE]\n"
+            "  -h, --help  print this Help\n"
+            "  -l          List suites and tests, then exit (dry run)\n"
+            "  -f          Stop runner after first failure\n"
+            "  -a          Abort on first failure (implies -f)\n"
+            "  -v          Verbose output\n"
+            "  -s SUITE    only run suites containing substring SUITE\n"
+            "  -t TEST     only run tests containing substring TEST\n"
+            "  -e          only run exact name match for -s or -t\n"
+            "  -x EXCLUDE  exclude tests containing substring EXCLUDE\n",
+            name);
 }
 
 void
@@ -532,8 +581,7 @@ itest_parse_options(int argc, char **argv)
                 } else if (0 == strcmp("--", argv[i])) {
                     return; /* ignore following arguments */
                 }
-                ITEST_FPRINTF(ITEST_STDOUT, "Unknown argument '%s'\n",
-                              argv[i]);
+                fprintf(ITEST_STDOUT, "Unknown argument '%s'\n", argv[i]);
                 itest_usage(argv[0]);
                 exit(EXIT_FAILURE);
             }
@@ -706,13 +754,13 @@ itest_print_report(void)
 
     update_counts_and_reset_suite();
     itest_info.end = itest_get_cpu_time();
-    ITEST_FPRINTF(ITEST_STDOUT, "\nTotal: %u test%s", itest_info.tests_run,
-                  itest_info.tests_run == 1 ? "" : "s");
+    fprintf(ITEST_STDOUT, "\nTotal: %u test%s", itest_info.tests_run,
+            itest_info.tests_run == 1 ? "" : "s");
     itest_report_interval(itest_info.begin, itest_info.end);
-    ITEST_FPRINTF(ITEST_STDOUT, ", %u assertion%s\n", itest_info.assertions,
-                  itest_info.assertions == 1 ? "" : "s");
-    ITEST_FPRINTF(ITEST_STDOUT, "Pass: %u, fail: %u, skip: %u.\n",
-                  itest_info.passed, itest_info.failed, itest_info.skipped);
+    fprintf(ITEST_STDOUT, ", %u assertion%s\n", itest_info.assertions,
+            itest_info.assertions == 1 ? "" : "s");
+    fprintf(ITEST_STDOUT, "Pass: %u, fail: %u, skip: %u.\n",
+            itest_info.passed, itest_info.failed, itest_info.skipped);
 
     return itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -105,6 +105,12 @@ same, but a few changes have been made:
    It is no longer possible to configure the library to not use setjmp
    and longjmp.
 
+ - The `ITEST_FPRINTF`, `ITEST_FLOAT`, and `ITEST_FLOAT_FMT` macros
+   have been removed.  fprintf, double, and "%g" are used
+   unconditionally.  A more flexible (per-callsite instead of
+   per-build) way to vary the type of the EXP and GOT arguments to
+   `ITEST_ASSERT_IN_RANGE` may be added in the future.
+
 A proper manual will be written Real Soon Now.
 
 ## Licensing
