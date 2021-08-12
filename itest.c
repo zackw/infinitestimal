@@ -17,10 +17,50 @@
 
 #include "itest.h"
 
+/***********
+ * Options *
+ ***********/
+
+/* Default column width for non-verbose output. */
+#ifndef ITEST_DEFAULT_WIDTH
+#    define ITEST_DEFAULT_WIDTH 72
+#endif
+
+/* FILE *, for test logging. */
+#ifndef ITEST_STDOUT
+#    define ITEST_STDOUT stdout
+#endif
+
+/* Set to 0 to disable all use of time.h / clock(). */
+#ifndef ITEST_USE_TIME
+#    define ITEST_USE_TIME 1
+#endif
+
+/* Size of buffer for test name + optional '_' separator and suffix */
+#ifndef ITEST_TESTNAME_BUF_SIZE
+#    define ITEST_TESTNAME_BUF_SIZE 128
+#endif
+
+/* System headers */
+
+#include <assert.h>
+#include <ctype.h>
 #include <errno.h>
+#include <setjmp.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef ITEST_USE_TIME
+#    include <time.h>
+#endif
 
 /* Infinitestimal: out-of-line test harness code.  */
+
+/*********
+ * Types *
+ *********/
 
 typedef struct itest_memory_cmp_env
 {
@@ -28,6 +68,111 @@ typedef struct itest_memory_cmp_env
     const unsigned char *got;
     size_t size;
 } itest_memory_cmp_env;
+
+/* Internal state for a PRNG, used to shuffle test order. */
+typedef struct itest_prng
+{
+    unsigned char random_order; /* use random ordering? */
+    unsigned char initialized;  /* is random ordering initialized? */
+    unsigned char pad_0[6];
+    unsigned long state;      /* PRNG state */
+    unsigned long count;      /* how many tests, this pass */
+    unsigned long count_ceil; /* total number of tests */
+    unsigned long count_run;  /* total tests run */
+    unsigned long a;          /* LCG multiplier */
+    unsigned long c;          /* LCG increment */
+    unsigned long m;          /* LCG modulus, based on count_ceil */
+} itest_prng;
+
+/* PASS/FAIL/SKIP result from a test. Used internally.
+   ITEST_TEST_RES_PASS must be zero, other statuses should be positive.  */
+typedef enum itest_test_res
+{
+    ITEST_TEST_RES_PASS = 0,
+    ITEST_TEST_RES_FAIL = 1,
+    ITEST_TEST_RES_SKIP = 2
+} itest_test_res;
+
+/* Info for the current running suite. */
+typedef struct itest_suite_info
+{
+    unsigned int tests_run;
+    unsigned int passed;
+    unsigned int failed;
+    unsigned int skipped;
+
+#if ITEST_USE_TIME
+    /* timers, pre/post running suite and individual tests */
+    clock_t pre_suite;
+    clock_t post_suite;
+    clock_t pre_test;
+    clock_t post_test;
+#endif
+} itest_suite_info;
+
+/* Struct containing all test runner state. */
+typedef struct itest_run_info
+{
+    unsigned char flags;
+    unsigned char verbosity;
+    unsigned char running_test; /* guard for nested RUN_TEST calls */
+    unsigned char exact_name_match;
+
+    unsigned int tests_run; /* total test count */
+
+    /* currently running test suite */
+    itest_suite_info suite;
+
+    /* overall pass/fail/skip counts */
+    unsigned int passed;
+    unsigned int failed;
+    unsigned int skipped;
+    unsigned int assertions;
+
+    /* info to print about the most recent failure */
+    unsigned int fail_line;
+    unsigned int pad_1;
+    const char *fail_file;
+    const char *msg;
+
+    /* current setup/teardown hooks and userdata */
+    itest_setup_cb *setup;
+    void *setup_udata;
+    itest_teardown_cb *teardown;
+    void *teardown_udata;
+
+    /* formatting info for ".....s...F"-style output */
+    unsigned int col;
+    unsigned int width;
+
+    /* only run a specific suite or test */
+    const char *suite_filter;
+    const char *test_filter;
+    const char *test_exclude;
+    const char *name_suffix; /* print suffix with test name */
+    char name_buf[ITEST_TESTNAME_BUF_SIZE];
+
+    struct itest_prng prng[2]; /* 0: suites, 1: tests */
+
+#if ITEST_USE_TIME
+    /* overall timers */
+    clock_t begin;
+    clock_t end;
+#endif
+
+    jmp_buf jump_dest;
+} itest_run_info;
+
+/* Global var for the current testing context.  */
+static itest_run_info itest_info;
+
+/* PRNG internal state assumes uint32_t values */
+static_assert(sizeof(itest_info.prng[0].state) >= 4, "PRNG state too small");
+static_assert(sizeof(itest_info.prng[0].a) >= 4, "PRNG state too small");
+static_assert(sizeof(itest_info.prng[0].c) >= 4, "PRNG state too small");
+static_assert(sizeof(itest_info.prng[0].m) >= 4, "PRNG state too small");
+
+/* Functions */
 
 /* Query a CPU time clock.  */
 static clock_t
@@ -204,7 +349,7 @@ itest_fail(const char *msg, const char *file, unsigned int line)
     itest_info.fail_file = file;
     itest_info.fail_line = line;
     itest_info.msg       = msg;
-    if (ITEST_ABORT_ON_FAIL()) {
+    if (itest_get_flag(ITEST_FLAG_ABORT_ON_FAIL)) {
         abort();
     }
     longjmp(itest_info.jump_dest, ITEST_TEST_RES_FAIL);
@@ -229,13 +374,14 @@ itest_test_pre(const char *name)
     itest_buffer_test_name(name);
     match = itest_name_match(g->name_buf, g->test_filter, 1)
             && !itest_name_match(g->name_buf, g->test_exclude, 0);
-    if (ITEST_LIST_ONLY()) { /* just listing test names */
+    if (itest_get_flag(ITEST_FLAG_LIST_ONLY)) { /* just listing test names */
         if (match) {
             fprintf(ITEST_STDOUT, "  %s\n", g->name_buf);
         }
         goto clear;
     }
-    if (match && (!ITEST_FIRST_FAIL() || g->suite.failed == 0)) {
+    if (match
+        && (!itest_get_flag(ITEST_FLAG_FIRST_FAIL) || g->suite.failed == 0)) {
         struct itest_prng *p = &g->prng[1];
         if (p->random_order) {
             p->count++;
@@ -266,7 +412,7 @@ static void
 itest_do_pass(void)
 {
     struct itest_run_info *g = &itest_info;
-    if (ITEST_IS_VERBOSE()) {
+    if (itest_get_verbosity()) {
         fprintf(ITEST_STDOUT, "PASS %s: %s", g->name_buf,
                 g->msg ? g->msg : "");
     } else {
@@ -279,7 +425,7 @@ static void
 itest_do_fail(void)
 {
     struct itest_run_info *g = &itest_info;
-    if (ITEST_IS_VERBOSE()) {
+    if (itest_get_verbosity()) {
         fprintf(ITEST_STDOUT, "FAIL %s: %s (%s:%u)", g->name_buf,
                 g->msg ? g->msg : "", g->fail_file, g->fail_line);
     } else {
@@ -299,7 +445,7 @@ static void
 itest_do_skip(void)
 {
     struct itest_run_info *g = &itest_info;
-    if (ITEST_IS_VERBOSE()) {
+    if (itest_get_verbosity()) {
         fprintf(ITEST_STDOUT, "SKIP %s: %s", g->name_buf,
                 g->msg ? g->msg : "");
     } else {
@@ -337,7 +483,7 @@ itest_test_post(int res)
     itest_info.name_suffix = NULL;
     itest_info.suite.tests_run++;
     itest_info.col++;
-    if (ITEST_IS_VERBOSE()) {
+    if (itest_get_verbosity()) {
         itest_report_interval(itest_info.suite.pre_test,
                               itest_info.suite.post_test);
         fprintf(ITEST_STDOUT, "\n");
@@ -384,7 +530,7 @@ itest_suite_pre(const char *suite_name)
 {
     struct itest_prng *p = &itest_info.prng[0];
     if (!itest_name_match(suite_name, itest_info.suite_filter, 1)
-        || (ITEST_FAILURE_ABORT())) {
+        || (itest_get_flag(ITEST_FLAG_ABORT_ON_FAIL))) {
         return 0;
     }
     if (p->random_order) {
@@ -619,6 +765,13 @@ itest_set_exact_name_match(void)
     itest_info.exact_name_match = 1;
 }
 
+int
+itest_is_filtered(void)
+{
+    return itest_info.test_filter != NULL || itest_info.test_exclude != NULL
+           || itest_info.suite_filter != NULL;
+}
+
 void
 itest_stop_at_first_fail(void)
 {
@@ -658,6 +811,12 @@ void
 itest_set_verbosity(unsigned int verbosity)
 {
     itest_info.verbosity = (unsigned char)verbosity;
+}
+
+int
+itest_get_flag(itest_flag_t flag)
+{
+    return !!(itest_info.flags & flag);
 }
 
 void
@@ -744,7 +903,8 @@ itest_shuffle_running(unsigned int id)
 {
     struct itest_prng *p = &itest_info.prng[id];
     if ((!p->initialized || p->count_run < p->count_ceil)
-        && !ITEST_FAILURE_ABORT()) {
+        && !(itest_get_flag(ITEST_FLAG_FIRST_FAIL)
+             && (itest_info.suite.failed > 0 || itest_info.failed > 0))) {
         return 1;
     }
     memset(p, 0, sizeof *p);
@@ -767,7 +927,7 @@ itest_init(void)
 int
 itest_print_report(void)
 {
-    if (ITEST_LIST_ONLY()) {
+    if (itest_get_flag(ITEST_FLAG_LIST_ONLY)) {
         return EXIT_SUCCESS;
     }
 
@@ -783,5 +943,3 @@ itest_print_report(void)
 
     return itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-itest_run_info itest_info;

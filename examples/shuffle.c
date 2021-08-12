@@ -18,10 +18,10 @@ static char test_has_run[(TEST_COUNT / 8) + 1];
 static int
 running_all(void)
 {
-    if (ITEST_LIST_ONLY()) {
+    if (itest_get_flag(ITEST_FLAG_ABORT_ON_FAIL)) {
         return 0;
     }
-    if (itest_info.test_filter != NULL || itest_info.suite_filter != NULL) {
+    if (itest_is_filtered()) {
         return 0;
     }
     return 1;
@@ -214,12 +214,6 @@ SUITE(suite_shuffle_pass_and_failure)
         RUN_TEST(just_fail);
     }
 }
-
-/* PRNG internal state assumes uint32_t values */
-static_assert(sizeof(itest_info.prng[0].state) >= 4, "PRNG state too small");
-static_assert(sizeof(itest_info.prng[0].a) >= 4, "PRNG state too small");
-static_assert(sizeof(itest_info.prng[0].c) >= 4, "PRNG state too small");
-static_assert(sizeof(itest_info.prng[0].m) >= 4, "PRNG state too small");
 
 int
 main(int argc, char **argv)

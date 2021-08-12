@@ -125,6 +125,20 @@ same, but a few changes have been made:
    This avoids a variety of situations where the preprocessor
    would have misinterpreted the block as *multiple* arguments.
 
+- itest.h now only includes stddef.h, which may break code that was
+  relying on it to include other C library headers.
+
+- The remaining compile-time configuration macros have been moved to
+  itest.c; you only need to override them when compiling itest.c (and
+  they have no effect on any other file that includes itest.h)
+
+- The `itest_info` global, the types `itest_suite_info`, `itest_prng`,
+  `itest_run_info` and `itest_test_res`, and the macros
+  `ITEST_ABORT_ON_FAIL`, `ITEST_FIRST_FAIL`, `ITEST_IS_VERBOSE` and
+  `ITEST_LIST_ONLY` are no longer part of the public API.  New
+  functions `itest_get_flag` and `itest_is_filtered` have been added
+  to compensate.
+
 A proper manual will be written Real Soon Now.
 
 ## Licensing

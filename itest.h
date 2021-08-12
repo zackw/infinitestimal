@@ -18,6 +18,8 @@
 #ifndef ITEST_H
 #define ITEST_H
 
+#include <stddef.h>
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -37,40 +39,6 @@ extern "C" {
  */
 
 /*********************************************************************/
-
-#include <ctype.h>
-#include <setjmp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-/***********
- * Options *
- ***********/
-
-/* Default column width for non-verbose output. */
-#ifndef ITEST_DEFAULT_WIDTH
-#    define ITEST_DEFAULT_WIDTH 72
-#endif
-
-/* FILE *, for test logging. */
-#ifndef ITEST_STDOUT
-#    define ITEST_STDOUT stdout
-#endif
-
-/* Set to 0 to disable all use of time.h / clock(). */
-#ifndef ITEST_USE_TIME
-#    define ITEST_USE_TIME 1
-#endif
-
-#if ITEST_USE_TIME
-#    include <time.h>
-#endif
-
-/* Size of buffer for test name + optional '_' separator and suffix */
-#ifndef ITEST_TESTNAME_BUF_SIZE
-#    define ITEST_TESTNAME_BUF_SIZE 128
-#endif
 
 /* Declaring a function that does not return (if we can) */
 #if defined __cplusplus && __cplusplus >= 201103L
@@ -94,32 +62,6 @@ extern "C" {
 /*********
  * Types *
  *********/
-
-/* PASS/FAIL/SKIP result from a test. Used internally.
-   ITEST_TEST_RES_PASS must be zero, other statuses should be positive.  */
-typedef enum itest_test_res
-{
-    ITEST_TEST_RES_PASS = 0,
-    ITEST_TEST_RES_FAIL = 1,
-    ITEST_TEST_RES_SKIP = 2
-} itest_test_res;
-
-/* Info for the current running suite. */
-typedef struct itest_suite_info
-{
-    unsigned int tests_run;
-    unsigned int passed;
-    unsigned int failed;
-    unsigned int skipped;
-
-#if ITEST_USE_TIME
-    /* timers, pre/post running suite and individual tests */
-    clock_t pre_suite;
-    clock_t post_suite;
-    clock_t pre_test;
-    clock_t post_test;
-#endif
-} itest_suite_info;
 
 /* Type for a suite function. */
 typedef void itest_suite_cb(void);
@@ -153,93 +95,21 @@ typedef struct itest_type_info
     itest_printf_cb *print;
 } itest_type_info;
 
-typedef enum
+typedef enum itest_flag_t
 {
     ITEST_FLAG_FIRST_FAIL    = 0x01,
     ITEST_FLAG_LIST_ONLY     = 0x02,
     ITEST_FLAG_ABORT_ON_FAIL = 0x04
 } itest_flag_t;
 
-/* Internal state for a PRNG, used to shuffle test order. */
-struct itest_prng
+/* overall pass/fail/skip counts */
+typedef struct itest_report_t
 {
-    unsigned char random_order; /* use random ordering? */
-    unsigned char initialized;  /* is random ordering initialized? */
-    unsigned char pad_0[6];
-    unsigned long state;      /* PRNG state */
-    unsigned long count;      /* how many tests, this pass */
-    unsigned long count_ceil; /* total number of tests */
-    unsigned long count_run;  /* total tests run */
-    unsigned long a;          /* LCG multiplier */
-    unsigned long c;          /* LCG increment */
-    unsigned long m;          /* LCG modulus, based on count_ceil */
-};
-
-/* Struct containing all test runner state. */
-typedef struct itest_run_info
-{
-    unsigned char flags;
-    unsigned char verbosity;
-    unsigned char running_test; /* guard for nested RUN_TEST calls */
-    unsigned char exact_name_match;
-
-    unsigned int tests_run; /* total test count */
-
-    /* currently running test suite */
-    itest_suite_info suite;
-
-    /* overall pass/fail/skip counts */
     unsigned int passed;
     unsigned int failed;
     unsigned int skipped;
     unsigned int assertions;
-
-    /* info to print about the most recent failure */
-    unsigned int fail_line;
-    unsigned int pad_1;
-    const char *fail_file;
-    const char *msg;
-
-    /* current setup/teardown hooks and userdata */
-    itest_setup_cb *setup;
-    void *setup_udata;
-    itest_teardown_cb *teardown;
-    void *teardown_udata;
-
-    /* formatting info for ".....s...F"-style output */
-    unsigned int col;
-    unsigned int width;
-
-    /* only run a specific suite or test */
-    const char *suite_filter;
-    const char *test_filter;
-    const char *test_exclude;
-    const char *name_suffix; /* print suffix with test name */
-    char name_buf[ITEST_TESTNAME_BUF_SIZE];
-
-    struct itest_prng prng[2]; /* 0: suites, 1: tests */
-
-#if ITEST_USE_TIME
-    /* overall timers */
-    clock_t begin;
-    clock_t end;
-#endif
-
-    jmp_buf jump_dest;
-} itest_run_info;
-
-struct itest_report_t
-{
-    /* overall pass/fail/skip counts */
-    unsigned int passed;
-    unsigned int failed;
-    unsigned int skipped;
-    unsigned int assertions;
-};
-
-/* Global var for the current testing context.
- * Initialized by ITEST_MAIN_DEFS(). */
-extern itest_run_info itest_info;
+} itest_report_t;
 
 /* Type for ASSERT_ENUM_EQ's ENUM_STR argument. */
 typedef const char *itest_enum_str_fun(int value);
@@ -296,13 +166,15 @@ void itest_set_suite_filter(const char *filter);
 void itest_set_test_filter(const char *filter);
 void itest_set_test_exclude(const char *filter);
 void itest_set_exact_name_match(void);
+int itest_is_filtered(void);
 void itest_stop_at_first_fail(void);
 void itest_abort_on_fail(void);
 void itest_list_only(void);
-void itest_get_report(struct itest_report_t *report);
+void itest_get_report(itest_report_t *report);
 unsigned int itest_get_verbosity(void);
 void itest_set_verbosity(unsigned int verbosity);
 void itest_set_flag(itest_flag_t flag);
+int itest_get_flag(itest_flag_t flag);
 void itest_set_test_suffix(const char *suffix);
 ITEST_NORETURN itest_fail(const char *msg, const char *file,
                           unsigned int line);
@@ -338,15 +210,6 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
 
 /* Ignore test function TEST, don't warn about it being unused. */
 #define ITEST_IGNORE_TEST(TEST) (void)TEST
-
-/* Check if the test runner is in verbose mode. */
-#define ITEST_IS_VERBOSE()    ((itest_info.verbosity) > 0)
-#define ITEST_LIST_ONLY()     (itest_info.flags & ITEST_FLAG_LIST_ONLY)
-#define ITEST_FIRST_FAIL()    (itest_info.flags & ITEST_FLAG_FIRST_FAIL)
-#define ITEST_ABORT_ON_FAIL() (itest_info.flags & ITEST_FLAG_ABORT_ON_FAIL)
-#define ITEST_FAILURE_ABORT()                                                \
-    (ITEST_FIRST_FAIL()                                                      \
-     && (itest_info.suite.failed > 0 || itest_info.failed > 0))
 
 /* Message-less forms of tests defined below. */
 #define ITEST_FAIL()              ITEST_FAILm(NULL)

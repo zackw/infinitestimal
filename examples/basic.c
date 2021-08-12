@@ -407,7 +407,7 @@ SUITE(suite)
     arg = 11;
     RUN_TEST1(parametric_example_c89, &arg);
 
-    if (ITEST_IS_VERBOSE()) {
+    if (itest_get_verbosity()) {
         printf("itest was run with verbosity level: %u\n",
                itest_get_verbosity());
     }

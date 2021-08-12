@@ -363,7 +363,6 @@ Pass: 1064, fail: 2, skip: 0.
 * Suite suite:
 ...........
 11 tests - 11 passed, 0 failed, 0 skipped (nn ticks, n.nnn sec)
-sizeof(itest_info): 632
 
 Total: 11 tests (nn ticks, n.nnn sec), 0 assertions
 Pass: 11, fail: 0, skip: 0.

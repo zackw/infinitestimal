@@ -2,6 +2,7 @@
  * Minimal test runner template
  *********************************************************************/
 #include "itest-abbrev.h"
+#include <stdio.h>
 
 TEST
 foo_should_foo(void)

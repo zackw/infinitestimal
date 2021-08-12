@@ -69,8 +69,4 @@
 #define SHUFFLE_TESTS    ITEST_SHUFFLE_TESTS
 #define SHUFFLE_SUITES   ITEST_SHUFFLE_SUITES
 
-#ifdef ITEST_VA_ARGS
-#    define RUN_TESTp ITEST_RUN_TESTp
-#endif
-
 #endif /* itest-abbrev.h */
