@@ -21,6 +21,13 @@
 
 /* Infinitestimal: out-of-line test harness code.  */
 
+typedef struct itest_memory_cmp_env
+{
+    const unsigned char *exp;
+    const unsigned char *got;
+    size_t size;
+} itest_memory_cmp_env;
+
 /* Query a CPU time clock.  */
 static clock_t
 itest_get_cpu_time(void)
@@ -49,6 +56,78 @@ itest_report_interval(clock_t begin, clock_t end)
                   ((double)delta) / CLOCKS_PER_SEC);
 #endif
 }
+
+static int
+itest_string_equal_cb(const void *expd, const void *got, void *udata)
+{
+    size_t *size = (size_t *)udata;
+    return (size != NULL
+                ? (0 == strncmp((const char *)expd, (const char *)got, *size))
+                : (0 == strcmp((const char *)expd, (const char *)got)));
+}
+
+static int
+itest_string_printf_cb(const void *t, void *udata)
+{
+    (void)udata; /* note: does not check \0 termination. */
+    return ITEST_FPRINTF(ITEST_STDOUT, "%s", (const char *)t);
+}
+
+static const itest_type_info itest_type_info_string = {
+    itest_string_equal_cb,
+    itest_string_printf_cb,
+};
+
+static int
+itest_memory_equal_cb(const void *expd, const void *got, void *udata)
+{
+    itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
+    return (0 == memcmp(expd, got, env->size));
+}
+
+/* Hexdump raw memory, with differences highlighted */
+static int
+itest_memory_printf_cb(const void *t, void *udata)
+{
+    itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
+    const unsigned char *buf  = (const unsigned char *)t;
+    FILE *out                 = ITEST_STDOUT;
+    unsigned char diff_mark;
+    size_t i, line_i, line_len = 0;
+    int len = 0; /* format hexdump with differences highlighted */
+    for (i = 0; i < env->size; i += line_len) {
+        diff_mark = ' ';
+        line_len  = env->size - i;
+        if (line_len > 16) {
+            line_len = 16;
+        }
+        for (line_i = i; line_i < i + line_len; line_i++) {
+            if (env->exp[line_i] != env->got[line_i]) {
+                diff_mark = 'X';
+            }
+        }
+        len += ITEST_FPRINTF(out, "\n%04x %c ", (unsigned int)i, diff_mark);
+        for (line_i = i; line_i < i + line_len; line_i++) {
+            int m = env->exp[line_i] == env->got[line_i]; /* match? */
+            len += ITEST_FPRINTF(out, "%02x%c", buf[line_i], m ? ' ' : '<');
+        }
+        for (line_i = 0; line_i < 16 - line_len; line_i++) {
+            len += ITEST_FPRINTF(out, "   ");
+        }
+        ITEST_FPRINTF(out, " ");
+        for (line_i = i; line_i < i + line_len; line_i++) {
+            unsigned char c = buf[line_i];
+            len += ITEST_FPRINTF(out, "%c", isprint(c) ? c : '.');
+        }
+    }
+    len += ITEST_FPRINTF(out, "\n");
+    return len;
+}
+
+static const itest_type_info itest_type_info_memory = {
+    itest_memory_equal_cb,
+    itest_memory_printf_cb,
+};
 
 /* Is FILTER a subset of NAME? */
 static int
@@ -336,16 +415,16 @@ itest_run_suite(itest_suite_cb *suite_cb, const char *suite_name)
     }
 }
 
-int
-itest_do_assert_equal_t(const void *expd, const void *got,
-                        itest_type_info *type_info, void *udata)
+void
+itest_assert_equal_t(const void *expd, const void *got,
+                     const itest_type_info *type_info, void *udata,
+                     const char *file, unsigned int line, const char *msg)
 {
-    int eq = 0;
+    itest_info.assertions++;
     if (type_info == NULL || type_info->equal == NULL) {
-        return 0;
+        itest_fail("type_info->equal callback missing!", file, line);
     }
-    eq = type_info->equal(expd, got, udata);
-    if (!eq) {
+    if (!type_info->equal(expd, got, udata)) {
         if (type_info->print != NULL) {
             ITEST_FPRINTF(ITEST_STDOUT, "\nExpected: ");
             (void)type_info->print(expd, udata);
@@ -353,8 +432,36 @@ itest_do_assert_equal_t(const void *expd, const void *got,
             (void)type_info->print(got, udata);
             ITEST_FPRINTF(ITEST_STDOUT, "\n");
         }
+        itest_fail(msg, file, line);
     }
-    return eq;
+}
+
+void
+itest_assert_equal_str(const char *expd, const char *got, const char *file,
+                       unsigned int line, const char *msg)
+{
+    itest_assert_equal_t(expd, got, &itest_type_info_string, NULL, file, line,
+                         msg);
+}
+
+void
+itest_assert_equal_strn(const char *expd, const char *got, size_t size,
+                        const char *file, unsigned int line, const char *msg)
+{
+    itest_assert_equal_t(expd, got, &itest_type_info_string, &size, file,
+                         line, msg);
+}
+
+void
+itest_assert_equal_mem(const void *expd, const void *got, size_t size,
+                       const char *file, unsigned int line, const char *msg)
+{
+    itest_memory_cmp_env env;
+    env.exp  = expd;
+    env.got  = got;
+    env.size = size;
+    itest_assert_equal_t(expd, got, &itest_type_info_memory, &env, file, line,
+                         msg);
 }
 
 static void
@@ -531,73 +638,6 @@ itest_set_teardown_cb(itest_teardown_cb *cb, void *udata)
     itest_info.teardown_udata = udata;
 }
 
-static int
-itest_string_equal_cb(const void *expd, const void *got, void *udata)
-{
-    size_t *size = (size_t *)udata;
-    return (size != NULL
-                ? (0 == strncmp((const char *)expd, (const char *)got, *size))
-                : (0 == strcmp((const char *)expd, (const char *)got)));
-}
-
-static int
-itest_string_printf_cb(const void *t, void *udata)
-{
-    (void)udata; /* note: does not check \0 termination. */
-    return ITEST_FPRINTF(ITEST_STDOUT, "%s", (const char *)t);
-}
-
-itest_type_info itest_type_info_string = {
-    itest_string_equal_cb,
-    itest_string_printf_cb,
-};
-
-static int
-itest_memory_equal_cb(const void *expd, const void *got, void *udata)
-{
-    itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
-    return (0 == memcmp(expd, got, env->size));
-}
-
-/* Hexdump raw memory, with differences highlighted */
-static int
-itest_memory_printf_cb(const void *t, void *udata)
-{
-    itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
-    const unsigned char *buf  = (const unsigned char *)t;
-    FILE *out                 = ITEST_STDOUT;
-    unsigned char diff_mark;
-    size_t i, line_i, line_len = 0;
-    int len = 0; /* format hexdump with differences highlighted */
-    for (i = 0; i < env->size; i += line_len) {
-        diff_mark = ' ';
-        line_len  = env->size - i;
-        if (line_len > 16) {
-            line_len = 16;
-        }
-        for (line_i = i; line_i < i + line_len; line_i++) {
-            if (env->exp[line_i] != env->got[line_i]) {
-                diff_mark = 'X';
-            }
-        }
-        len += ITEST_FPRINTF(out, "\n%04x %c ", (unsigned int)i, diff_mark);
-        for (line_i = i; line_i < i + line_len; line_i++) {
-            int m = env->exp[line_i] == env->got[line_i]; /* match? */
-            len += ITEST_FPRINTF(out, "%02x%c", buf[line_i], m ? ' ' : '<');
-        }
-        for (line_i = 0; line_i < 16 - line_len; line_i++) {
-            len += ITEST_FPRINTF(out, "   ");
-        }
-        ITEST_FPRINTF(out, " ");
-        for (line_i = i; line_i < i + line_len; line_i++) {
-            unsigned char c = buf[line_i];
-            len += ITEST_FPRINTF(out, "%c", isprint(c) ? c : '.');
-        }
-    }
-    len += ITEST_FPRINTF(out, "\n");
-    return len;
-}
-
 void
 itest_prng_init_first_pass(int id)
 {
@@ -676,10 +716,5 @@ itest_print_report(void)
 
     return itest_all_passed() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-itest_type_info itest_type_info_memory = {
-    itest_memory_equal_cb,
-    itest_memory_printf_cb,
-};
 
 itest_run_info itest_info;

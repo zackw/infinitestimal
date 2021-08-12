@@ -157,17 +157,6 @@ typedef struct itest_type_info
     itest_printf_cb *print;
 } itest_type_info;
 
-typedef struct itest_memory_cmp_env
-{
-    const unsigned char *exp;
-    const unsigned char *got;
-    size_t size;
-} itest_memory_cmp_env;
-
-/* Callbacks for string and raw memory types. */
-extern itest_type_info itest_type_info_string;
-extern itest_type_info itest_type_info_memory;
-
 typedef enum
 {
     ITEST_FLAG_FIRST_FAIL    = 0x01,
@@ -266,8 +255,20 @@ typedef const char *itest_enum_str_fun(int value);
 /* These are used internally by itest macros. */
 int itest_test_pre(const char *name);
 void itest_test_post(int res);
-int itest_do_assert_equal_t(const void *expd, const void *got,
-                            itest_type_info *type_info, void *udata);
+void itest_assert_equal_str(const char *expd, const char *got,
+                            const char *file, unsigned int line,
+                            const char *msg);
+void itest_assert_equal_strn(const char *expd, const char *got, size_t size,
+                             const char *file, unsigned int line,
+                             const char *msg);
+void itest_assert_equal_mem(const void *expd, const void *got, size_t size,
+                            const char *file, unsigned int line,
+                            const char *msg);
+
+void itest_assert_equal_t(const void *expd, const void *got,
+                          const itest_type_info *type_info, void *udata,
+                          const char *file, unsigned int line,
+                          const char *msg);
 void itest_prng_init_first_pass(int id);
 int itest_prng_init_second_pass(int id, unsigned long seed);
 void itest_prng_step(int id);
@@ -311,7 +312,7 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
     void NAME(void)
 
 /* Declare a suite, provided by another compilation unit. */
-#define ITEST_SUITE_EXTERN(NAME) void NAME(void)
+#define ITEST_SUITE_EXTERN(NAME) extern void NAME(void)
 
 /* Start defining a test function.
  * The arguments are not included, to allow parametric testing. */
@@ -458,44 +459,21 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
 
 /* Fail if EXP is not equal to GOT, according to strcmp. */
 #define ITEST_ASSERT_STR_EQm(MSG, EXP, GOT)                                  \
-    do {                                                                     \
-        ITEST_ASSERT_EQUAL_Tm(MSG, EXP, GOT, &itest_type_info_string, NULL); \
-    } while (0)
+    itest_assert_equal_str(EXP, GOT, __FILE__, __LINE__, MSG)
 
 /* Fail if EXP is not equal to GOT, according to strncmp. */
 #define ITEST_ASSERT_STRN_EQm(MSG, EXP, GOT, SIZE)                           \
-    do {                                                                     \
-        size_t size = SIZE;                                                  \
-        ITEST_ASSERT_EQUAL_Tm(MSG, EXP, GOT, &itest_type_info_string,        \
-                              &size);                                        \
-    } while (0)
+    itest_assert_equal_strn(EXP, GOT, SIZE, __FILE__, __LINE__, MSG)
 
 /* Fail if EXP is not equal to GOT, according to memcmp. */
 #define ITEST_ASSERT_MEM_EQm(MSG, EXP, GOT, SIZE)                            \
-    do {                                                                     \
-        itest_memory_cmp_env env;                                            \
-        env.exp  = (const unsigned char *)(EXP);                             \
-        env.got  = (const unsigned char *)(GOT);                             \
-        env.size = SIZE;                                                     \
-        ITEST_ASSERT_EQUAL_Tm(MSG, env.exp, env.got,                         \
-                              &itest_type_info_memory, &env);                \
-    } while (0)
+    itest_assert_equal_mem(EXP, GOT, SIZE, __FILE__, __LINE__, MSG)
 
 /* Fail if EXP is not equal to GOT, according to a comparison
  * callback in TYPE_INFO. If they are not equal, optionally use a
  * print callback in TYPE_INFO to print them. */
 #define ITEST_ASSERT_EQUAL_Tm(MSG, EXP, GOT, TYPE_INFO, UDATA)               \
-    do {                                                                     \
-        itest_type_info *type_info = (TYPE_INFO);                            \
-        itest_info.assertions++;                                             \
-        if (!itest_do_assert_equal_t(EXP, GOT, type_info, UDATA)) {          \
-            if (type_info == NULL || type_info->equal == NULL) {             \
-                ITEST_FAILm("type_info->equal callback missing!");           \
-            } else {                                                         \
-                ITEST_FAILm(MSG);                                            \
-            }                                                                \
-        }                                                                    \
-    } while (0)
+    itest_assert_equal_t(EXP, GOT, TYPE_INFO, UDATA, __FILE__, __LINE__, MSG)
 
 /* Fail. */
 #define ITEST_FAILm(MSG) itest_fail(MSG, __FILE__, __LINE__)
