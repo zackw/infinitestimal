@@ -204,12 +204,12 @@ itest_report_interval(clock_t begin, clock_t end)
 }
 
 static int
-itest_string_equal_cb(const void *expd, const void *got, void *udata)
+itest_string_equal_cb(const void *exp, const void *got, void *udata)
 {
     size_t *size = (size_t *)udata;
     return (size != NULL
-                ? (0 == strncmp((const char *)expd, (const char *)got, *size))
-                : (0 == strcmp((const char *)expd, (const char *)got)));
+                ? (0 == strncmp((const char *)exp, (const char *)got, *size))
+                : (0 == strcmp((const char *)exp, (const char *)got)));
 }
 
 static int
@@ -225,10 +225,10 @@ static const itest_type_info itest_type_info_string = {
 };
 
 static int
-itest_memory_equal_cb(const void *expd, const void *got, void *udata)
+itest_memory_equal_cb(const void *exp, const void *got, void *udata)
 {
     itest_memory_cmp_env *env = (itest_memory_cmp_env *)udata;
-    return (0 == memcmp(expd, got, env->size));
+    return (0 == memcmp(exp, got, env->size));
 }
 
 /* Hexdump raw memory, with differences highlighted */
@@ -612,18 +612,18 @@ itest_assert_in_range(const char *msg, const char *file, unsigned int line,
 }
 
 void
-itest_assert_equal_t(const void *expd, const void *got,
-                     const itest_type_info *type_info, void *udata,
-                     const char *file, unsigned int line, const char *msg)
+itest_assert_equal_t(const char *msg, const char *file, unsigned int line,
+                     const void *exp, const void *got,
+                     const itest_type_info *type_info, void *udata)
 {
     itest_info.assertions++;
     if (type_info == NULL || type_info->equal == NULL) {
         itest_fail("type_info->equal callback missing!", file, line);
     }
-    if (!type_info->equal(expd, got, udata)) {
+    if (!type_info->equal(exp, got, udata)) {
         if (type_info->print != NULL) {
             fprintf(ITEST_STDOUT, "\nExpected: ");
-            (void)type_info->print(expd, udata);
+            (void)type_info->print(exp, udata);
             fprintf(ITEST_STDOUT, "\n     Got: ");
             (void)type_info->print(got, udata);
             fprintf(ITEST_STDOUT, "\n");
@@ -633,31 +633,31 @@ itest_assert_equal_t(const void *expd, const void *got,
 }
 
 void
-itest_assert_equal_str(const char *expd, const char *got, const char *file,
-                       unsigned int line, const char *msg)
+itest_assert_equal_str(const char *msg, const char *file, unsigned int line,
+                       const char *exp, const char *got)
 {
-    itest_assert_equal_t(expd, got, &itest_type_info_string, NULL, file, line,
-                         msg);
+    itest_assert_equal_t(msg, file, line, exp, got, &itest_type_info_string,
+                         NULL);
 }
 
 void
-itest_assert_equal_strn(const char *expd, const char *got, size_t size,
-                        const char *file, unsigned int line, const char *msg)
+itest_assert_equal_strn(const char *msg, const char *file, unsigned int line,
+                        const char *exp, const char *got, size_t size)
 {
-    itest_assert_equal_t(expd, got, &itest_type_info_string, &size, file,
-                         line, msg);
+    itest_assert_equal_t(msg, file, line, exp, got, &itest_type_info_string,
+                         &size);
 }
 
 void
-itest_assert_equal_mem(const void *expd, const void *got, size_t size,
-                       const char *file, unsigned int line, const char *msg)
+itest_assert_equal_mem(const char *msg, const char *file, unsigned int line,
+                       const void *exp, const void *got, size_t size)
 {
     itest_memory_cmp_env env;
-    env.exp  = expd;
+    env.exp  = exp;
     env.got  = got;
     env.size = size;
-    itest_assert_equal_t(expd, got, &itest_type_info_memory, &env, file, line,
-                         msg);
+    itest_assert_equal_t(msg, file, line, exp, got, &itest_type_info_memory,
+                         &env);
 }
 
 static void

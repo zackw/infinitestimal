@@ -20,7 +20,7 @@
 
 #include <stddef.h>
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -133,19 +133,18 @@ void itest_assert_eq_enum(const char *msg, const char *file,
 void itest_assert_in_range(const char *msg, const char *file,
                            unsigned int line, double exp, double got,
                            double tol);
-void itest_assert_equal_str(const char *expd, const char *got,
-                            const char *file, unsigned int line,
-                            const char *msg);
-void itest_assert_equal_strn(const char *expd, const char *got, size_t size,
-                             const char *file, unsigned int line,
-                             const char *msg);
-void itest_assert_equal_mem(const void *expd, const void *got, size_t size,
-                            const char *file, unsigned int line,
-                            const char *msg);
-void itest_assert_equal_t(const void *expd, const void *got,
-                          const itest_type_info *type_info, void *udata,
-                          const char *file, unsigned int line,
-                          const char *msg);
+void itest_assert_equal_str(const char *msg, const char *file,
+                            unsigned int line, const char *exp,
+                            const char *got);
+void itest_assert_equal_strn(const char *msg, const char *file,
+                             unsigned int line, const char *exp,
+                             const char *got, size_t size);
+void itest_assert_equal_mem(const char *msg, const char *file,
+                            unsigned int line, const void *exp,
+                            const void *got, size_t size);
+void itest_assert_equal_t(const char *msg, const char *file,
+                          unsigned int line, const void *exp, const void *got,
+                          const itest_type_info *type_info, void *udata);
 
 void itest_shuffle_init(unsigned int id, unsigned long seed);
 void itest_shuffle_next(unsigned int id);
@@ -282,21 +281,21 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
 
 /* Fail if EXP is not equal to GOT, according to strcmp. */
 #define ITEST_ASSERT_STR_EQm(MSG, EXP, GOT)                                  \
-    itest_assert_equal_str(EXP, GOT, __FILE__, __LINE__, MSG)
+    itest_assert_equal_str(MSG, __FILE__, __LINE__, EXP, GOT)
 
 /* Fail if EXP is not equal to GOT, according to strncmp. */
 #define ITEST_ASSERT_STRN_EQm(MSG, EXP, GOT, SIZE)                           \
-    itest_assert_equal_strn(EXP, GOT, SIZE, __FILE__, __LINE__, MSG)
+    itest_assert_equal_strn(MSG, __FILE__, __LINE__, EXP, GOT, SIZE)
 
 /* Fail if EXP is not equal to GOT, according to memcmp. */
 #define ITEST_ASSERT_MEM_EQm(MSG, EXP, GOT, SIZE)                            \
-    itest_assert_equal_mem(EXP, GOT, SIZE, __FILE__, __LINE__, MSG)
+    itest_assert_equal_mem(MSG, __FILE__, __LINE__, EXP, GOT, SIZE)
 
 /* Fail if EXP is not equal to GOT, according to a comparison
  * callback in TYPE_INFO. If they are not equal, optionally use a
  * print callback in TYPE_INFO to print them. */
 #define ITEST_ASSERT_EQUAL_Tm(MSG, EXP, GOT, TYPE_INFO, UDATA)               \
-    itest_assert_equal_t(EXP, GOT, TYPE_INFO, UDATA, __FILE__, __LINE__, MSG)
+    itest_assert_equal_t(MSG, __FILE__, __LINE__, EXP, GOT, TYPE_INFO, UDATA)
 
 /* Fail. */
 #define ITEST_FAILm(MSG) itest_fail(MSG, __FILE__, __LINE__)
@@ -308,7 +307,7 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
  * order, seeded by SEED. (The top 3 bits of the seed are ignored.)
  *
  * These macros expand to for-loop heads. They should be called like:
- *     ITEST_SHUFFLE_TESTS(seed) {
+ *     ITEST_SHUFFLE_TESTS (seed) {
  *         ITEST_RUN_TEST(some_test);
  *         ITEST_RUN_TEST(some_other_test);
  *         ITEST_RUN_TEST(yet_another_test);
@@ -323,7 +322,7 @@ ITEST_NORETURN itest_skip(const char *msg, const char *file,
     for (itest_shuffle_init(ID, SD); itest_shuffle_running(ID);              \
          itest_shuffle_next(ID))
 
-#if defined(__cplusplus)
+#ifdef __cplusplus
 } /* extern "C" */
 #endif
 
