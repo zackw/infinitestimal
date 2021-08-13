@@ -38,15 +38,10 @@ Based on [greatest][] but with somewhat divergent design goals.
     test scaffold with a few more opinions about the right way to run
     tests and present their output.
 
-    Most of those opinions are still TBD, but changes we already plan
-    to make are:
-
-    - Runtime rather than compile time configuration.  In particular,
-      whether tests are timed is a runtime switch, not an ifdef.
-    - No global state; it should be possible to run tests from more
-      than one thread.
-    - As much code as possible should be out of line (in `itest.c`
-      rather than `itest.h`).
+    At present, we have made only minor API changes (see below) and
+    moved as much code out-of-line as possible (which only affects how
+    you incorporate itest into your project.  More changes are
+    planned, see [`TODO.md`](./TODO.md) for details.
 
 - **Reasonably Portable**
 
