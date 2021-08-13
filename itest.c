@@ -26,11 +26,6 @@
 #    define ITEST_DEFAULT_WIDTH 72
 #endif
 
-/* Set to 0 to disable all use of time.h / clock(). */
-#ifndef ITEST_USE_TIME
-#    define ITEST_USE_TIME 1
-#endif
-
 /* Size of buffer for test name + optional '_' separator and suffix */
 #ifndef ITEST_TESTNAME_BUF_SIZE
 #    define ITEST_TESTNAME_BUF_SIZE 128
@@ -46,10 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#ifdef ITEST_USE_TIME
-#    include <time.h>
-#endif
+#include <time.h>
 
 /* Infinitestimal: out-of-line test harness code.  */
 
@@ -96,13 +88,11 @@ typedef struct itest_suite_info
     unsigned int failed;
     unsigned int skipped;
 
-#if ITEST_USE_TIME
     /* timers, pre/post running suite and individual tests */
     clock_t pre_suite;
     clock_t post_suite;
     clock_t pre_test;
     clock_t post_test;
-#endif
 } itest_suite_info;
 
 /* Struct containing all test runner state. */
@@ -151,11 +141,9 @@ typedef struct itest_run_info
 
     struct itest_prng prng[2]; /* 0: suites, 1: tests */
 
-#if ITEST_USE_TIME
     /* overall timers */
     clock_t begin;
     clock_t end;
-#endif
 
     jmp_buf jump_dest;
 } itest_run_info;
@@ -175,29 +163,27 @@ static_assert(sizeof(itest_info.prng[0].m) >= 4, "PRNG state too small");
 static clock_t
 itest_get_cpu_time(void)
 {
-#if ITEST_USE_TIME
-    clock_t res = clock();
-    if (res == (clock_t)-1) {
-        fprintf(itest_info.out, "clock: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
+    clock_t res = -1;
+    if (itest_get_flag(ITEST_FLAG_RECORD_TIMING)) {
+        res = clock();
+        if (res == (clock_t)-1) {
+            fprintf(itest_info.out, "warning: clock: %s\n", strerror(errno));
+        }
     }
     return res;
-#else
-    return (clock_t)-1;
-#endif
 }
 
 /* Report an elapsed CPU time interval.  */
 static void
 itest_report_interval(clock_t begin, clock_t end)
 {
-#if ITEST_USE_TIME
-    // This subtraction must be done in unsigned arithmetic lest it
-    // produce nonsense when the timer wraps around.
-    unsigned long delta = (unsigned long)end - (unsigned long)begin;
-    fprintf(itest_info.out, " (%lu ticks, %.3f sec)", delta,
-            ((double)delta) / CLOCKS_PER_SEC);
-#endif
+    if (itest_get_flag(ITEST_FLAG_RECORD_TIMING)) {
+        // This subtraction must be done in unsigned arithmetic lest it
+        // produce nonsense when the timer wraps around.
+        unsigned long delta = (unsigned long)end - (unsigned long)begin;
+        fprintf(itest_info.out, " (%lu ticks, %.3f sec)", delta,
+                ((double)delta) / CLOCKS_PER_SEC);
+    }
 }
 
 static int
@@ -660,8 +646,8 @@ itest_assert_equal_mem(const char *msg, const char *file, unsigned int line,
 static void
 itest_usage(const char *name)
 {
-    fprintf(itest_info.out,
-            "Usage: %s [-hlfavex] [-s SUITE] [-t TEST] [-x EXCLUDE]\n"
+    fprintf(stderr,
+            "Usage: %s [-hlfavexT] [-s SUITE] [-t TEST] [-x EXCLUDE]\n"
             "  -h, --help  print this Help\n"
             "  -l          List suites and tests, then exit (dry run)\n"
             "  -f          Stop runner after first failure\n"
@@ -670,7 +656,8 @@ itest_usage(const char *name)
             "  -s SUITE    only run suites containing substring SUITE\n"
             "  -t TEST     only run tests containing substring TEST\n"
             "  -e          only run exact name match for -s or -t\n"
-            "  -x EXCLUDE  exclude tests containing substring EXCLUDE\n",
+            "  -x EXCLUDE  exclude tests containing substring EXCLUDE\n"
+            "  -T          don't record CPU time for each test\n",
             name);
 }
 
@@ -710,8 +697,11 @@ itest_parse_options(int argc, char **argv)
             case 'l': /* list only (dry run) */
                 itest_list_only();
                 break;
-            case 'v': /* first fail flag */
+            case 'v': /* increase verbosity */
                 itest_info.verbosity++;
+                break;
+            case 'T': /* don't record timing */
+                itest_clear_flag(ITEST_FLAG_RECORD_TIMING);
                 break;
             case 'h': /* help */
                 itest_usage(argv[0]);
@@ -823,6 +813,12 @@ itest_set_flag(itest_flag_t flag)
 }
 
 void
+itest_clear_flag(itest_flag_t flag)
+{
+    itest_info.flags = (unsigned char)(itest_info.flags & ~flag);
+}
+
+void
 itest_set_test_suffix(const char *suffix)
 {
     itest_info.name_suffix = suffix;
@@ -921,6 +917,7 @@ itest_init(void)
     itest_info.width = ITEST_DEFAULT_WIDTH;
     itest_info.begin = itest_get_cpu_time();
     itest_info.out   = stdout;
+    itest_set_flag(ITEST_FLAG_RECORD_TIMING);
 }
 
 /* Report passes, failures, skipped tests, the number of

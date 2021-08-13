@@ -101,7 +101,8 @@ typedef enum itest_flag_t
 {
     ITEST_FLAG_FIRST_FAIL    = 0x01,
     ITEST_FLAG_LIST_ONLY     = 0x02,
-    ITEST_FLAG_ABORT_ON_FAIL = 0x04
+    ITEST_FLAG_ABORT_ON_FAIL = 0x04,
+    ITEST_FLAG_RECORD_TIMING = 0x08
 } itest_flag_t;
 
 /* overall pass/fail/skip counts */
@@ -176,6 +177,7 @@ void itest_get_report(itest_report_t *report);
 unsigned int itest_get_verbosity(void);
 void itest_set_verbosity(unsigned int verbosity);
 void itest_set_flag(itest_flag_t flag);
+void itest_clear_flag(itest_flag_t flag);
 int itest_get_flag(itest_flag_t flag);
 void itest_set_test_suffix(const char *suffix);
 ITEST_NORETURN itest_fail(const char *msg, const char *file,

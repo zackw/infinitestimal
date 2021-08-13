@@ -50,9 +50,11 @@ Based on [greatest][] but with somewhat divergent design goals.
 
 - **Reasonably Portable**
 
-    Infinitestimal requires an ISO C99 hosted environment; notably,
-    the complete functionality of `string.h`, `stdio.h`, and
-    `setjmp.h` is required.
+    Infinitestimal requires an ISO C99 hosted environment.  A handful
+    of features of ISO C2011, and common compiler extensions, are
+    used, but only with fallbacks.  [Note: there is presently no
+    automated testing that the fallbacks work.  If you encounter
+    problems with older / rarer compilers, please file a bug report.]
 
     [not yet implemented] There is optional support for isolating
     tests from each other, and recovering from crashes, using POSIX
@@ -141,6 +143,16 @@ same, but a few changes have been made:
 
   Relatedly, `itest_printf_cb` has been renamed `itest_fprintf_cb` and
   now takes the FILE to print to as an additional argument.
+
+  The “usage” message printed by `-h` is unconditionally printed to
+  stderr.  (It used to be sent to ITEST_STDOUT.)
+
+- The configuration macro `ITEST_USE_TIME` has been removed.  Whether
+  to record CPU time for each test is now controllable at runtime,
+  using the `ITEST_FLAG_RECORD_TIMING` flag and/or the `-T` switch to
+  the command line runner.  Timing is on by default.
+
+  Relatedly, there is a new API function `itest_clear_flag`.
 
 - The remaining compile-time configuration macros have been moved to
   itest.c; you only need to override them when compiling itest.c (and
