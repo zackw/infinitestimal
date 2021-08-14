@@ -244,8 +244,8 @@ expect_enum_equal_only_evaluates_args_once(void)
                    side_effect, "%d");
 }
 
-static size_t
-Fibonacci(unsigned char x)
+static unsigned long
+Fibonacci(unsigned long x)
 {
     if (x < 2) {
         return 1;
@@ -257,10 +257,10 @@ Fibonacci(unsigned char x)
 TEST
 extra_slow_test(void)
 {
-    unsigned char i;
+    unsigned long i;
     printf("\nThis test can be skipped with a negative test filter...\n");
     for (i = 1; i < 40; i++) {
-        printf("fib %u -> %lu\n", i, (long unsigned)Fibonacci(i));
+        printf("fib %lu -> %lu\n", i, Fibonacci(i));
     }
 }
 
