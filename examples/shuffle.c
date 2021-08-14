@@ -11,7 +11,7 @@
 
 #define TEST_COUNT 1000
 
-static char test_has_run[(TEST_COUNT / 8) + 1];
+static unsigned char test_has_run[(TEST_COUNT / 8) + 1];
 
 /* Don't bother complaining about tests not being run if listing tests
  * or name-based filtering means not all tests are being run. */
@@ -38,9 +38,9 @@ check_run(unsigned int id)
 static void
 set_run(unsigned int id)
 {
-    size_t offset     = id / 8;
-    unsigned char bit = (unsigned char)(1U << (id & 0x07));
-    test_has_run[offset] |= bit;
+    size_t offset        = id / 8;
+    unsigned char bit    = (unsigned char)(1U << (id & 0x07));
+    test_has_run[offset] = (unsigned char)(test_has_run[offset] | bit);
 }
 
 static void
