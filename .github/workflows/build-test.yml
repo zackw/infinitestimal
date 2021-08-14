@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install tools
-      run: sudo apt-get -y install clang-tidy cppcheck
+      run: sudo apt-get -y install clang-tidy
     - name: make
       run: make
     - name: make check
