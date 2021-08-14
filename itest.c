@@ -61,7 +61,7 @@ typedef struct itest_prng
 {
     unsigned char random_order; /* use random ordering? */
     unsigned char initialized;  /* is random ordering initialized? */
-    unsigned char pad_0[6];
+
     unsigned long state;      /* PRNG state */
     unsigned long count;      /* how many tests, this pass */
     unsigned long count_ceil; /* total number of tests */
