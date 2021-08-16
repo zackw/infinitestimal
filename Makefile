@@ -58,7 +58,9 @@ LINK = $(CC)
 examples/basic_cplusplus: LINK = $(CXX)
 
 check-examples: all
-	if command -V pytest; then		\
+	if command -V pytest-3; then		\
+	  pytest-3;				\
+	elif command -V pytest; then		\
 	  pytest;				\
 	fi
 

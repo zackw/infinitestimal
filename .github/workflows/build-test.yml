@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: install tools
-      run: sudo apt-get -y install clang-tidy
+      run: sudo apt-get -y install clang-tidy python3-pytest
     - name: make
       run: make
     - name: make check
