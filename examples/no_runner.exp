@@ -1,0 +1,9 @@
+.
+Standard report, as printed by itest:
+
+Total: 1 test (nn ticks, n.nnn sec), 0 assertions
+Pass: 1, fail: 0, skip: 0.
+
+Custom report:
+pass 1, fail 0, skip 0, assertions 0
++ exit 0

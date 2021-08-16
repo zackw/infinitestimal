@@ -58,12 +58,9 @@ LINK = $(CC)
 examples/basic_cplusplus: LINK = $(CXX)
 
 check-examples: all
-	for p in $(PROGRAMS); do		\
-	  echo + $$p;				\
-	  $$p;					\
-	  echo + $$p: '$$?' = $$?;		\
-	done > example-output.log 2>&1;		\
-	$(PERL) compare-example-output.pl
+	if command -V pytest; then		\
+	  pytest;				\
+	fi
 
 check-lint:
 	if command -V clang-tidy; then		\

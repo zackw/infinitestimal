@@ -1,7 +1,7 @@
 *.o
-
-example-output.log
-example-output-filtered.log
+*.pyc
+*.pyo
+__pycache__/
 
 examples/basic
 examples/basic_cplusplus
