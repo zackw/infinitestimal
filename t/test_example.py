@@ -4,6 +4,7 @@ import glob
 import os
 import re
 import subprocess
+from typing import Iterable
 
 import pytest
 
@@ -45,9 +46,11 @@ def filter_log(log: str) -> str:
     ) + "\n"
 
 
-def run_suite(prog: str) -> str:
+def run_suite(prog: str, args: Iterable[str] = []) -> str:
+    argv = [prog]
+    argv.extend(args)
     result = subprocess.run(
-        [prog],
+        argv,
         stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
@@ -61,11 +64,17 @@ def run_suite(prog: str) -> str:
 
 
 @pytest.mark.parametrize(
-    "exp_file", glob.glob(os.path.join(EXAMPLE_DIR, "*.exp"))
+    "exp_file", sorted(glob.glob(os.path.join(EXAMPLE_DIR, "*.exp")))
 )
 def test_example(exp_file: str) -> None:
     with open(exp_file, "rt", encoding="utf-8") as fp:
         expected = fp.read()
-    actual = run_suite(removesuffix(exp_file, ".exp"))
+    example = removesuffix(exp_file, ".exp")
+    args = []
+    for opt in ['-T', '-v']:
+        if example.endswith(opt):
+            example = example[:-len(opt)]
+            args.append(opt)
+    actual = run_suite(example, args)
 
     assert actual == expected

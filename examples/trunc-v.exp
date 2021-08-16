@@ -1,0 +1,19 @@
+
+* Suite suite:
+PASS t_:  (nn ticks, n.nnn sec)
+PASS t_x:  (nn ticks, n.nnn sec)
+PASS t_xx:  (nn ticks, n.nnn sec)
+PASS t_xxx:  (nn ticks, n.nnn sec)
+PASS t_xxxx:  (nn ticks, n.nnn sec)
+PASS t_xxxxx:  (nn ticks, n.nnn sec)
+PASS t_xxxxxx:  (nn ticks, n.nnn sec)
+PASS t_xxxxxxx:  (nn ticks, n.nnn sec)
+PASS t_xxxxxxxx:  (nn ticks, n.nnn sec)
+PASS t_xxxxxxxxx:  (nn ticks, n.nnn sec)
+PASS abcdefghijklmnopqrstuvwxyz:  (nn ticks, n.nnn sec)
+
+11 tests - 11 passed, 0 failed, 0 skipped (nn ticks, n.nnn sec)
+
+Total: 11 tests (nn ticks, n.nnn sec), 0 assertions
+Pass: 11, fail: 0, skip: 0.
++ exit 0

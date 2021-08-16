@@ -1,0 +1,347 @@
+FAIL standalone_test: (expected failure) (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+* Suite suite:
+
+This should have some failures:
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+PASS example_test_case: (expected failure) (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+FAIL example_test_case: r >= 1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+PASS example_test_case: r >= 1 (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+SKIP example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+PASS example_test_case:  (nn ticks, n.nnn sec)
+FAIL expect_equal: 10 != i (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should fail:
+
+Expected: foo2
+     Got: foo1
+FAIL expect_str_equal: "foo2" != foo1 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should pass:
+PASS expect_not_equal: "foo2" != foo1 (nn ticks, n.nnn sec)
+PASS expect_strn_equal: "foo2" != foo1 (nn ticks, n.nnn sec)
+
+This should fail:
+
+Expected: {3}
+     Got: {4}
+FAIL expect_boxed_int_equal: &a != &c (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should fail:
+FAIL expect_boxed_int_equal_no_print: &a != &c (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should fail, printing the mismatched values in hex.
+
+Expected: 0xba5eba11
+     Got: 0xf005ba11
+FAIL expect_int_equal_printing_hex: a != b (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should fail and show floating point values just outside the range.
+
+Expected: 1e-05 +/- 0.0001
+     Got: 0.000111
+FAIL expect_floating_point_range: out of range (examples/basic.c:nn) (nn ticks, n.nnn sec)
+-- in setup callback
+-- in teardown callback
+PASS teardown_example_PASS: out of range (nn ticks, n.nnn sec)
+
+This should fail:
+-- in setup callback
+-- in teardown callback
+FAIL teardown_example_FAIL: Using FAIL to trigger teardown callback (examples/basic.c:nn) (nn ticks, n.nnn sec)
+This should be skipped:
+-- in setup callback
+-- in teardown callback
+SKIP teardown_example_SKIP: Using SKIP to trigger teardown callback (nn ticks, n.nnn sec)
+This should fail, but note the subfunction that failed.
+FAIL example_using_subfunctions: arg < 3 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should fail:
+FAIL parametric_example_c89: arg > 10 (examples/basic.c:nn) (nn ticks, n.nnn sec)
+PASS parametric_example_c89: arg > 10 (nn ticks, n.nnn sec)
+itest was run with verbosity level: 1
+
+This should fail:
+
+Expected:
+0000   00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f  ................
+0010 X 10 11 12 13 14 15 16 17<18 19 1a 1b 1c 1d 1e 1f  ................
+0020 X 20 21 22<23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f   !"#$%&'()*+,-./
+0030   30 31 32 33 34 35 36 37                          01234567
+
+     Got:
+0000   00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f  ................
+0010 X 10 11 12 13 14 15 16 58<18 19 1a 1b 1c 1d 1e 1f  .......X........
+0020 X 20 21 58<23 24 25 26 27 28 29 2a 2b 2c 2d 2e 2f   !X#$%&'()*+,-./
+0030   30 31 32 33 34 35 36 37                          01234567
+
+FAIL expect_mem_equal: expected matching memory (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should fail:
+
+Expected: FOO_1
+     Got: FOO_2
+FAIL expect_enum_equal: FOO_1 != foo_2_with_side_effect() (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+This should NOT fail:
+PASS expect_enum_equal_only_evaluates_args_once: FOO_1 != foo_2_with_side_effect() (nn ticks, n.nnn sec)
+
+This test can be skipped with a negative test filter...
+fib 1 -> 1
+fib 2 -> 2
+fib 3 -> 3
+fib 4 -> 5
+fib 5 -> 8
+fib 6 -> 13
+fib 7 -> 21
+fib 8 -> 34
+fib 9 -> 55
+fib 10 -> 89
+fib 11 -> 144
+fib 12 -> 233
+fib 13 -> 377
+fib 14 -> 610
+fib 15 -> 987
+fib 16 -> 1597
+fib 17 -> 2584
+fib 18 -> 4181
+fib 19 -> 6765
+fib 20 -> 10946
+fib 21 -> 17711
+fib 22 -> 28657
+fib 23 -> 46368
+fib 24 -> 75025
+fib 25 -> 121393
+fib 26 -> 196418
+fib 27 -> 317811
+fib 28 -> 514229
+fib 29 -> 832040
+fib 30 -> 1346269
+fib 31 -> 2178309
+fib 32 -> 3524578
+fib 33 -> 5702887
+fib 34 -> 9227465
+fib 35 -> 14930352
+fib 36 -> 24157817
+fib 37 -> 39088169
+fib 38 -> 63245986
+fib 39 -> 102334155
+PASS extra_slow_test: FOO_1 != foo_2_with_side_effect() (nn ticks, n.nnn sec)
+Error: Test run inside another test.
+This nested RUN_TEST call should not trigger an infinite loop...
+PASS nested_RUN_TEST: FOO_1 != foo_2_with_side_effect() (nn ticks, n.nnn sec)
+
+These next several tests should also fail:
+FAIL eq_pass_and_fail: x != y (examples/basic.c:nn) (nn ticks, n.nnn sec)
+FAIL neq_pass_and_fail: x == x (examples/basic.c:nn) (nn ticks, n.nnn sec)
+FAIL gt_pass_and_fail: x <= x (examples/basic.c:nn) (nn ticks, n.nnn sec)
+FAIL gte_pass_and_fail: y < z (examples/basic.c:nn) (nn ticks, n.nnn sec)
+FAIL lt_pass_and_fail: x >= x (examples/basic.c:nn) (nn ticks, n.nnn sec)
+FAIL lte_pass_and_fail: z > x (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+225 tests - 171 passed, 32 failed, 22 skipped (nn ticks, n.nnn sec)
+
+* Suite other_suite:
+PASS blah: z > x (nn ticks, n.nnn sec)
+SKIP todo: TODO (nn ticks, n.nnn sec)
+
+2 tests - 1 passed, 0 failed, 1 skipped (nn ticks, n.nnn sec)
+FAIL standalone_test: (expected failure) (examples/basic.c:nn) (nn ticks, n.nnn sec)
+
+Total: 229 tests (nn ticks, n.nnn sec), 417 assertions
+Pass: 172, fail: 34, skip: 23.
++ exit 1

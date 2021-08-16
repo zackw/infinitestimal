@@ -1,0 +1,6 @@
+F
+FAIL standalone_fail: (expected failure) (examples/no_suite.c:nn)
+.s
+Total: 3 tests, 0 assertions
+Pass: 1, fail: 1, skip: 1.
++ exit 1

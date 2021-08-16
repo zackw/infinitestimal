@@ -1,0 +1,138 @@
+init_second_pass: <<variable>>
+init_second_pass: <<variable>>
+
+* Suite suite_shuffle_pass_and_failure:
+F
+FAIL just_fail:  (examples/shuffle.c:nn)
+running test from suite 5
+.running test from suite 4
+.running test from suite 3
+.running test from suite 2
+.running test from suite 1
+.
+6 tests - 5 passed, 1 failed, 0 skipped
+
+* Suite suite5:
+running test from suite 5
+.
+1 test - 1 passed, 0 failed, 0 skipped
+
+* Suite suite4:
+running test from suite 4
+.
+1 test - 1 passed, 0 failed, 0 skipped
+
+* Suite suite3:
+running test from suite 3
+.
+1 test - 1 passed, 0 failed, 0 skipped
+
+* Suite suite2:
+running test from suite 2
+.count 0, seed nnnnn
+count 1, seed nnnnn
+init_second_pass: <<variable>>
+
+1 test - 1 passed, 0 failed, 0 skipped
+
+* Suite suite1:
+running test 0
+.count 2, seed nnnnn
+init_second_pass: <<variable>>
+running test 1
+.running test 0
+.count 3, seed nnnnn
+init_second_pass: <<variable>>
+running test 1
+.running test 0
+.running test 2
+.count 4, seed nnnnn
+init_second_pass: <<variable>>
+running test 1
+.running test 0
+.running test 3
+.running test 2
+.count 5, seed nnnnn
+init_second_pass: <<variable>>
+running test 4
+.running test 3
+.running test 2
+.running test 1
+.running test 0
+.count 6, seed nnnnn
+init_second_pass: <<variable>>
+running test 5
+.running test 4
+.running test 3
+.running test 2
+.running test 1
+.running test 0
+.count 7, seed nnnnn
+init_second_pass: <<variable>>
+running test 5
+.running test 4
+.running test 3
+.running test 2
+.running test 1
+.running test 0
+.running test 6
+.count 8, seed nnnnn
+init_second_pass: <<variable>>
+running test 5
+.running test 4
+.running test 3
+.running test 2
+.running test 1
+.running test 0
+.running test 7
+.running test 6
+.count 9, seed nnnnn
+init_second_pass: <<variable>>
+running test 5
+.running test 2
+.running test 1
+.running test 8
+.running test 7
+.running test 4
+.running test 3
+.running test 0
+.running test 6
+.count 10, seed nnnnn
+init_second_pass: <<variable>>
+running test 5
+.running test 2
+.running test 1
+.running test 8
+.running test 7
+.running test 4
+.running test 3
+.running test 9
+.running test 0
+.running test 6
+.init_second_pass: <<variable>>
+.................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+........................................................................
+...............................................
+1055 tests - 1055 passed, 0 failed, 0 skipped
+
+* Suite suite_failure:
+F
+FAIL just_fail:  (examples/shuffle.c:nn)
+
+1 test - 0 passed, 1 failed, 0 skipped
+
+Total: 1066 tests, 0 assertions
+Pass: 1064, fail: 2, skip: 0.
++ exit 1

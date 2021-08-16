@@ -1,0 +1,7 @@
+FAIL standalone_fail: (expected failure) (examples/no_suite.c:nn) (nn ticks, n.nnn sec)
+PASS standalone_pass: (expected failure) (nn ticks, n.nnn sec)
+SKIP standalone_skip: skipped (nn ticks, n.nnn sec)
+
+Total: 3 tests (nn ticks, n.nnn sec), 0 assertions
+Pass: 1, fail: 1, skip: 1.
++ exit 1

@@ -1,0 +1,6 @@
+F
+FAIL standalone_test: (expected failure) (examples/basic_cplusplus.cpp:nn)
+
+Total: 1 test, 0 assertions
+Pass: 0, fail: 1, skip: 0.
++ exit 1
