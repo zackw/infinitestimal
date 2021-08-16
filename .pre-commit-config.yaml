@@ -8,19 +8,34 @@ repos:
   - id: check-case-conflict
   - id: check-merge-conflict
   - id: check-yaml
+    name: "Check for YAML syntax errors"
   - id: end-of-file-fixer
+    name: "Add missing newlines at EOF"
   - id: fix-byte-order-marker
+    name: "Remove byte-order marks from UTF-8 files"
   - id: trailing-whitespace
+    name: "Trim trailing whitespace"
+
+- repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.1.10
+  hooks:
+  - id: remove-crlf
+    name: "Convert DOS line endings to Unix"
+  - id: remove-tabs
+    name: "Remove hard tabs"
+    args: [ '--whitespaces-count', '8' ]  # defaults to 4, which is wrong
 
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.8.4
   hooks:
   - id: flake8
+    name: "Lint Python code (flake8)"
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v0.910
   hooks:
   - id: mypy
+    name: "Type-check Python code (mypy)"
     # --allow-untyped-decorators because of
     # https://github.com/pytest-dev/pytest/issues/7589
     # *should have* been fixed by https://github.com/python/mypy/pull/9232
@@ -32,18 +47,12 @@ repos:
   rev: v0.31.0
   hooks:
   - id: yapf
-
-- repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.1.10
-  hooks:
-  - id: remove-crlf
-  - id: remove-tabs
-    args: [ '--whitespaces-count', '8' ]  # defaults to 4, which is wrong
+    name: "Reformat Python code"
 
 - repo: local
   hooks:
   - id: clang-format
-    name: Code formatting
+    name: "Reformat C and C++ code"
     language: system
     types_or: [c, c++]
     entry: "clang-format -style=file -i"
