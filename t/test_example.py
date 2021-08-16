@@ -4,7 +4,6 @@ import glob
 import os
 import re
 import subprocess
-import sys
 
 import pytest
 
@@ -14,6 +13,18 @@ EXAMPLE_DIR = os.path.relpath(
         os.path.dirname(__file__), "..", "examples"
     )
 )
+
+
+# Shim for removesuffix, which was added in Python 3.9.
+if hasattr("", "removesuffix"):
+    def removesuffix(s: str, suffix: str) -> str:
+        return s.removesuffix(suffix)
+else:
+    def removesuffix(s: str, suffix: str) -> str:
+        if suffix and s.endswith(suffix):
+            return s[:-len(suffix)]
+        else:
+            return s
 
 
 def filter_log(log: str) -> str:
@@ -53,9 +64,9 @@ def run_suite(prog: str) -> str:
     "exp_file",
     glob.glob(os.path.join(EXAMPLE_DIR, "*.exp"))
 )
-def test_example(exp_file: str):
+def test_example(exp_file: str) -> None:
     with open(exp_file, "rt", encoding="utf-8") as fp:
         expected = fp.read()
-    actual = run_suite(exp_file.removesuffix(".exp"))
+    actual = run_suite(removesuffix(exp_file, ".exp"))
 
     assert actual == expected
