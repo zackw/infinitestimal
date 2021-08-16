@@ -7,19 +7,17 @@ import subprocess
 
 import pytest
 
-
 EXAMPLE_DIR = os.path.relpath(
-    os.path.join(
-        os.path.dirname(__file__), "..", "examples"
-    )
+    os.path.join(os.path.dirname(__file__), "..", "examples")
 )
-
 
 # Shim for removesuffix, which was added in Python 3.9.
 if hasattr("", "removesuffix"):
+
     def removesuffix(s: str, suffix: str) -> str:
         return s.removesuffix(suffix)
 else:
+
     def removesuffix(s: str, suffix: str) -> str:
         if suffix and s.endswith(suffix):
             return s[:-len(suffix)]
@@ -33,15 +31,17 @@ def filter_log(log: str) -> str:
     """
     rsub = re.sub
     return "\n".join(
-        rsub(r"init_second_pass: a \d+, c \d+, state \d+",
-             "init_second_pass: <<variable>>",
-             rsub(r"\(\d+ ticks, \d+\.\d+ sec\)",
-                  "(nn ticks, n.nnn sec)",
-                  rsub(r", seed \d+$",
-                       ", seed nnnnn",
-                       rsub(r"(\.c(?:c|pp)?:)\d+", r"\1nn",
-                            line.rstrip()))))
-        for line in log.splitlines()
+        rsub(
+            r"init_second_pass: a \d+, c \d+, state \d+",
+            "init_second_pass: <<variable>>",
+            rsub(
+                r"\(\d+ ticks, \d+\.\d+ sec\)", "(nn ticks, n.nnn sec)",
+                rsub(
+                    r", seed \d+$", ", seed nnnnn",
+                    rsub(r"(\.c(?:c|pp)?:)\d+", r"\1nn", line.rstrip())
+                )
+            )
+        ) for line in log.splitlines()
     ) + "\n"
 
 
@@ -61,8 +61,7 @@ def run_suite(prog: str) -> str:
 
 
 @pytest.mark.parametrize(
-    "exp_file",
-    glob.glob(os.path.join(EXAMPLE_DIR, "*.exp"))
+    "exp_file", glob.glob(os.path.join(EXAMPLE_DIR, "*.exp"))
 )
 def test_example(exp_file: str) -> None:
     with open(exp_file, "rt", encoding="utf-8") as fp:
