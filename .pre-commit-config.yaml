@@ -36,12 +36,8 @@ repos:
   hooks:
   - id: mypy
     name: "Type-check Python code (mypy)"
-    # --allow-untyped-decorators because of
-    # https://github.com/pytest-dev/pytest/issues/7589
-    # *should have* been fixed by https://github.com/python/mypy/pull/9232
-    # which was merged a long time ago, but still fails for me
-    args: [ '--strict', '--allow-untyped-decorators' ]
-    additional_dependencies: [ 'pytest==6.0.2' ]
+    args: [ '--strict' ]
+    additional_dependencies: [ 'pytest==6.2.4' ]
 
 - repo: https://github.com/pre-commit/mirrors-yapf
   rev: v0.31.0
